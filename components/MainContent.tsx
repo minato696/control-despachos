@@ -2,10 +2,14 @@
 
 import { useAppContext } from './AppContext'
 import RegistroTab from './tabs/RegistroTab'
+import CiudadesTab from './tabs/CiudadesTab'
+import ReporterosTab from './tabs/ReporterosTab'
+import ResumenTab from './tabs/ResumenTab'
+import ConfigTab from './tabs/ConfigTab'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCity, faUsers, faChartBar, faCog } from '@fortawesome/free-solid-svg-icons'
 
-// Placeholder para las pestañas aún no implementadas
+// Mantenemos el PlaceholderTab como respaldo por si alguna pestaña no está lista
 const PlaceholderTab = ({ name, icon }: { name: string, icon: any }) => (
   <div className="flex flex-col items-center justify-center py-12 text-gray">
     <FontAwesomeIcon icon={icon} className="text-5xl mb-4 text-gray-medium" />
@@ -25,10 +29,10 @@ const MainContent = () => {
   return (
     <div className="p-6">
       {activeTab === 'registro' && <RegistroTab />}
-      {activeTab === 'ciudades' && <PlaceholderTab name="Ciudades" icon={faCity} />}
-      {activeTab === 'reporteros' && <PlaceholderTab name="Reporteros" icon={faUsers} />}
-      {activeTab === 'resumen' && <PlaceholderTab name="Resumen Semanal" icon={faChartBar} />}
-      {activeTab === 'config' && <PlaceholderTab name="Configuración" icon={faCog} />}
+      {activeTab === 'ciudades' && <CiudadesTab />}
+      {activeTab === 'reporteros' && <ReporterosTab />}
+      {activeTab === 'resumen' && <ResumenTab />}
+      {activeTab === 'config' && <ConfigTab />}
     </div>
   )
 }
