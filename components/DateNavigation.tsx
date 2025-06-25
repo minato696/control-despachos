@@ -1,6 +1,6 @@
 "use client"
 
-import { useAppContext } from '../components/AppContext'
+import { useAppContext } from './AppContext'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCalendarAlt, faChevronLeft, faChevronRight, faCalendarDay } from '@fortawesome/free-solid-svg-icons'
 
@@ -45,21 +45,21 @@ const DateNavigation = () => {
       <div className="flex gap-3">
         <button 
           onClick={goToPreviousDay}
-          className="flex items-center gap-3 px-5 py-2.5 bg-white text-primary border border-primary-border rounded font-medium text-sm shadow-sm hover:bg-primary-light hover:transform hover:-translate-y-0.5 transition-all"
+          className="btn btn-outline"
         >
           <FontAwesomeIcon icon={faChevronLeft} />
           Día anterior
         </button>
         <button 
           onClick={goToToday}
-          className="flex items-center gap-3 px-5 py-2.5 bg-primary text-white rounded font-medium text-sm shadow-sm hover:bg-primary-dark hover:transform hover:-translate-y-0.5 hover:shadow transition-all"
+          className="btn btn-primary"
         >
           <FontAwesomeIcon icon={faCalendarDay} />
           Hoy
         </button>
         <button 
           onClick={goToNextDay}
-          className="flex items-center gap-3 px-5 py-2.5 bg-white text-primary border border-primary-border rounded font-medium text-sm shadow-sm hover:bg-primary-light hover:transform hover:-translate-y-0.5 transition-all"
+          className="btn btn-outline"
         >
           Día siguiente
           <FontAwesomeIcon icon={faChevronRight} />

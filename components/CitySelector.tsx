@@ -1,6 +1,6 @@
 "use client"
 
-import { useAppContext } from '../components/AppContext'
+import { useAppContext } from './AppContext'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faUsers } from '@fortawesome/free-solid-svg-icons'
 
@@ -25,14 +25,14 @@ const CitySelector = () => {
   const reporterCount = selectedCity ? (reporteros[selectedCity]?.length || 0) : 0
 
   return (
-    <div className="flex flex-wrap gap-6 items-center mb-6">
+    <div className="city-selector">
       <div className="w-[250px]">
-        <label htmlFor="city-select" className="block mb-2 text-sm font-medium text-gray-dark">
+        <label htmlFor="city-select" className="form-label">
           Seleccionar Ciudad:
         </label>
         <select
           id="city-select"
-          className="w-full px-3.5 py-2.5 text-sm border border-gray-light rounded shadow-sm transition-all focus:outline-none focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-25"
+          className="form-select"
           value={selectedCity}
           onChange={(e) => setSelectedCity(e.target.value)}
         >
@@ -45,7 +45,7 @@ const CitySelector = () => {
       </div>
       
       {selectedCity && (
-        <div className="flex items-center gap-3 text-sm text-primary bg-primary-light px-4 py-2 rounded-full shadow-sm">
+        <div className="reporter-count">
           <FontAwesomeIcon icon={faUsers} className="text-primary" />
           Reporteros disponibles: <span className="font-semibold">{reporterCount}</span>
         </div>

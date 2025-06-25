@@ -6,7 +6,7 @@ import { faBroadcastTower } from '@fortawesome/free-solid-svg-icons'
 const Header = () => {
   return (
     <header className="bg-primary text-white py-3 shadow sticky top-0 z-10">
-      <div className="container mx-auto px-4">
+      <div className="container">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <FontAwesomeIcon icon={faBroadcastTower} className="text-xl" />

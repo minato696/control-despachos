@@ -1,6 +1,6 @@
 "use client"
 
-import { useAppContext } from '../components/AppContext'
+import { useAppContext } from './AppContext'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { 
   faClipboardList, 
@@ -22,14 +22,11 @@ const Tabs = () => {
   ]
 
   return (
-    <div className="flex border-b border-gray-light bg-white rounded-t-lg overflow-x-auto scrollbar-none">
+    <div className="tabs">
       {tabs.map(tab => (
         <div 
           key={tab.id}
-          className={`
-            px-6 py-4 font-medium cursor-pointer transition-all text-gray flex items-center gap-3 whitespace-nowrap
-            ${activeTab === tab.id ? 'text-primary border-b-2 border-primary bg-primary-light' : 'hover:text-primary hover:bg-gray-light'}
-          `}
+          className={`tab ${activeTab === tab.id ? 'active' : ''}`}
           onClick={() => setActiveTab(tab.id)}
         >
           <FontAwesomeIcon icon={tab.icon} />

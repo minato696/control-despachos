@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from 'react'
-import { useAppContext } from '../../components/AppContext'
+import { useAppContext } from '../AppContext'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faTimes } from '@fortawesome/free-solid-svg-icons'
 
@@ -17,12 +17,12 @@ const AddReporterModal: React.FC<AddReporterModalProps> = ({ show, onClose }) =>
 
   const handleSubmit = () => {
     if (nombre.trim() === '') {
-      // Mostrar error
+      // Mostrar error (en un sistema real)
       return
     }
     
     if (ciudad === '') {
-      // Mostrar error
+      // Mostrar error (en un sistema real)
       return
     }
     
@@ -47,23 +47,23 @@ const AddReporterModal: React.FC<AddReporterModalProps> = ({ show, onClose }) =>
           </button>
         </div>
         <div className="p-6">
-          <div className="mb-5">
-            <label className="block mb-2 text-sm font-medium text-gray-dark">
+          <div className="form-group">
+            <label className="form-label">
               Nombre del Reportero:
             </label>
             <input
               type="text"
-              className="w-full px-3.5 py-2.5 text-sm border border-gray-light rounded shadow-sm transition-all focus:outline-none focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-25"
+              className="form-control"
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
             />
           </div>
-          <div className="mb-5">
-            <label className="block mb-2 text-sm font-medium text-gray-dark">
+          <div className="form-group">
+            <label className="form-label">
               Ciudad:
             </label>
             <select
-              className="w-full px-3.5 py-2.5 text-sm border border-gray-light rounded shadow-sm transition-all focus:outline-none focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-25"
+              className="form-select"
               value={ciudad}
               onChange={(e) => setCiudad(e.target.value)}
             >

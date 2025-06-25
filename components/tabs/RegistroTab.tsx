@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from 'react'
-import { useAppContext, Despacho } from '../../components/AppContext'
+import { useAppContext, Despacho } from '../AppContext'
 import CitySelector from '../CitySelector'
 import ReporterCard from '../ReporterCard'
 import AddReporterModal from '../modals/AddReporterModal'
@@ -21,6 +21,7 @@ const RegistroTab = () => {
     const despachos: Despacho[] = []
     
     // Aquí iría la lógica para recopilar los datos de los despachos
+    // (En este ejemplo, solo simulamos guardar datos vacíos)
     
     // Guardar los despachos
     saveDespachos(despachos)
@@ -38,7 +39,7 @@ const RegistroTab = () => {
       
       <div className="flex flex-col md:flex-row justify-between gap-4">
         <button 
-          className="flex items-center justify-center gap-3 px-5 py-2.5 bg-success text-white rounded font-medium text-sm shadow-sm hover:bg-opacity-90 hover:transform hover:-translate-y-0.5 hover:shadow transition-all"
+          className="btn btn-success"
           onClick={() => setShowModal(true)}
         >
           <FontAwesomeIcon icon={faPlus} />
@@ -46,7 +47,7 @@ const RegistroTab = () => {
         </button>
         
         <button 
-          className="flex items-center justify-center gap-3 px-5 py-2.5 bg-primary text-white rounded font-medium text-sm shadow-sm hover:bg-primary-dark hover:transform hover:-translate-y-0.5 hover:shadow transition-all"
+          className="btn btn-primary"
           onClick={handleSaveDespachos}
         >
           <FontAwesomeIcon icon={faSave} />

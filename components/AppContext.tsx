@@ -50,7 +50,7 @@ interface AppContextType {
   saveDespachos: (nuevosDespachos: Despacho[]) => void
 }
 
-// Datos iniciales de reporteros
+// Datos iniciales de reporteros (igual que en el HTML compartido)
 const initialReporteros: ReporterosMap = {
   arequipa: [
     { id: 1, nombre: 'Carlos Nina' }

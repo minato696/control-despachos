@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from 'react'
 import Header from '../components/Header'
 import DateNavigation from '../components/DateNavigation'
 import Tabs from '../components/Tabs'
@@ -20,7 +19,7 @@ const AppContent = () => {
         <div className="container mx-auto px-4">
           <DateNavigation />
           
-          <div className="bg-white rounded shadow hover:shadow-md transition-all overflow-hidden">
+          <div className="card">
             <Tabs />
             <MainContent />
           </div>
