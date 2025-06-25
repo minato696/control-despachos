@@ -132,6 +132,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       title: '¡Reportero agregado!',
       message: `${nombre} ha sido agregado a ${ciudad}.`
     })
+
+    // Si la ciudad seleccionada es la misma a la que se agrega el reportero,
+    // seguimos en la misma pestaña
+    if (ciudad === selectedCity) {
+      setActiveTab('registro')
+    }
   }
 
   // Función para guardar despachos

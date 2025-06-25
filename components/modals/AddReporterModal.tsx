@@ -1,9 +1,5 @@
-"use client"
-
 import { useState } from 'react'
 import { useAppContext } from '../AppContext'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faTimes } from '@fortawesome/free-solid-svg-icons'
 
 interface AddReporterModalProps {
   show: boolean
@@ -36,34 +32,36 @@ const AddReporterModal: React.FC<AddReporterModalProps> = ({ show, onClose }) =>
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded shadow-lg w-full max-w-md max-h-[90vh] overflow-auto transform transition-transform duration-300">
-        <div className="flex justify-between items-center p-5 border-b border-gray-light">
-          <h3 className="text-lg font-semibold text-primary-darker">Agregar Reportero</h3>
+      <div className="bg-white rounded-lg shadow-lg w-full max-w-md transform transition-transform duration-300">
+        <div className="flex justify-between items-center px-5 py-4 border-b border-[#e2e8f0]">
+          <h3 className="text-lg font-semibold text-[#1a365d]">Agregar Reportero</h3>
           <button 
-            className="text-gray hover:text-danger transition-colors text-xl"
+            className="text-[#64748b] hover:text-[#1e293b] transition-colors text-xl"
             onClick={onClose}
           >
-            <FontAwesomeIcon icon={faTimes} />
+            &times;
           </button>
         </div>
         <div className="p-6">
-          <div className="form-group">
-            <label className="form-label">
+          <div className="mb-5">
+            <label htmlFor="reporter-name" className="block mb-2 text-sm font-medium text-[#475569]">
               Nombre del Reportero:
             </label>
             <input
               type="text"
-              className="form-control"
+              id="reporter-name"
+              className="w-full px-3.5 py-2.5 text-sm border border-[#e2e8f0] rounded-lg shadow-sm"
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
             />
           </div>
-          <div className="form-group">
-            <label className="form-label">
+          <div className="mb-5">
+            <label htmlFor="reporter-city" className="block mb-2 text-sm font-medium text-[#475569]">
               Ciudad:
             </label>
             <select
-              className="form-select"
+              id="reporter-city"
+              className="w-full px-3.5 py-2.5 text-sm border border-[#e2e8f0] rounded-lg shadow-sm"
               value={ciudad}
               onChange={(e) => setCiudad(e.target.value)}
             >
@@ -81,15 +79,15 @@ const AddReporterModal: React.FC<AddReporterModalProps> = ({ show, onClose }) =>
             </select>
           </div>
         </div>
-        <div className="flex justify-end p-5 gap-3 border-t border-gray-light">
+        <div className="flex justify-end p-5 gap-3 border-t border-[#e2e8f0]">
           <button
-            className="px-4 py-2 bg-white text-gray-dark border border-gray-light rounded hover:bg-gray-light transition-colors"
+            className="px-4 py-2.5 bg-white text-[#1e293b] border border-[#e2e8f0] rounded-lg hover:bg-[#f1f5f9] transition-colors"
             onClick={onClose}
           >
             Cancelar
           </button>
           <button
-            className="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark transition-colors"
+            className="px-4 py-2.5 bg-[#1a56db] text-white rounded-lg hover:bg-[#1e429f] transition-colors"
             onClick={handleSubmit}
           >
             Agregar
