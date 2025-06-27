@@ -10,7 +10,6 @@ const CitySelector = () => {
   const cities = [
     { value: "", label: "-- Seleccione Ciudad --" },
     { value: "arequipa", label: "Arequipa" },
-    { value: "lima", label: "Lima" },
     { value: "cusco", label: "Cusco" },
     { value: "trujillo", label: "Trujillo" },
     { value: "huancayo", label: "Huancayo" },

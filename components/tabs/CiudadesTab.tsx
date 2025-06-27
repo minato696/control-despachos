@@ -17,18 +17,32 @@ const CiudadesTab = () => {
     setActiveTab('registro')
   }
 
-  // Mapeo de ciudades a nombres en español
+  // Mapeo de ciudades a nombres en español con primera letra mayúscula
   const cityNameMap: {[key: string]: string} = {
+    'abancay': 'Abancay',
     'arequipa': 'Arequipa',
-    'lima': 'Lima',
-    'cusco': 'Cusco',
-    'trujillo': 'Trujillo',
-    'huancayo': 'Huancayo',
-    'piura': 'Piura',
+    'ayacucho': 'Ayacucho',
+    'barranca': 'Barranca',
+    'cajamarca': 'Cajamarca',
     'chiclayo': 'Chiclayo',
-    'tacna': 'Tacna',
+    'chincha': 'Chincha',
+    'cusco': 'Cusco',
+    'huancayo': 'Huancayo',
+    'huaral': 'Huaral',
+    'huaraz': 'Huaraz',
+    'huacho': 'Huacho',
     'ica': 'Ica',
-    'pucallpa': 'Pucallpa'
+    'iquitos': 'Iquitos',
+    'juliaca': 'Juliaca',
+    'mollendo': 'Mollendo',
+    'piura': 'Piura',
+    'pisco': 'Pisco',
+    'puerto_maldonado': 'Puerto Maldonado',
+    'tacna': 'Tacna',
+    'tarapoto': 'Tarapoto',
+    'trujillo': 'Trujillo',
+    'tumbes': 'Tumbes',
+    'yurimaguas': 'Yurimaguas'
   }
 
   return (
@@ -67,7 +81,7 @@ const CiudadesTab = () => {
             >
               <div className="flex justify-between items-center pb-4 border-b border-[#e2e8f0] mb-4">
                 <h3 className="text-lg font-semibold text-[#1a365d]">
-                  {cityNameMap[city] || city}
+                  {cityNameMap[city] || city.charAt(0).toUpperCase() + city.slice(1)}
                 </h3>
                 <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-[#e0f2fe] text-[#1a56db]">
                   {cityReporters.length} {cityReporters.length === 1 ? 'reportero' : 'reporteros'}

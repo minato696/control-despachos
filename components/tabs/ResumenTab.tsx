@@ -10,21 +10,21 @@ const ResumenTab = () => {
   const [weekSelect, setWeekSelect] = useState('3')
   const [periodoSelect, setperiodoSelect] = useState('semanal')
 
-  // Datos simulados para las nuevas estadísticas
+  // Datos simulados para las nuevas estadísticas (actualizados con las ciudades correctas)
   const topCiudades = [
-    { ciudad: 'Lima', despachos: 45, porcentaje: 25 },
-    { ciudad: 'Arequipa', despachos: 32, porcentaje: 18 },
+    { ciudad: 'Arequipa', despachos: 45, porcentaje: 25 },
+    { ciudad: 'Trujillo', despachos: 32, porcentaje: 18 },
     { ciudad: 'Cusco', despachos: 22, porcentaje: 12 },
-    { ciudad: 'Trujillo', despachos: 18, porcentaje: 10 },
-    { ciudad: 'Piura', despachos: 15, porcentaje: 8 },
+    { ciudad: 'Piura', despachos: 18, porcentaje: 10 },
+    { ciudad: 'Chiclayo', despachos: 15, porcentaje: 8 },
   ]
 
   const topReporteros = [
     { nombre: 'Carlos Nina', ciudad: 'Arequipa', despachos: 15, porcentaje: 8 },
-    { nombre: 'María Rodríguez', ciudad: 'Lima', despachos: 12, porcentaje: 7 },
-    { nombre: 'Pedro Quispe', ciudad: 'Cusco', despachos: 10, porcentaje: 6 },
-    { nombre: 'Lucia Mendoza', ciudad: 'Trujillo', despachos: 9, porcentaje: 5 },
-    { nombre: 'Juan López', ciudad: 'Lima', despachos: 8, porcentaje: 4 },
+    { nombre: 'Richard Calcina', ciudad: 'Arequipa', despachos: 12, porcentaje: 7 },
+    { nombre: 'Percy Pillca', ciudad: 'Cusco', despachos: 10, porcentaje: 6 },
+    { nombre: 'Roxana Gamboa', ciudad: 'Trujillo', despachos: 9, porcentaje: 5 },
+    { nombre: 'Diego Condori', ciudad: 'Arequipa', despachos: 8, porcentaje: 4 },
   ]
 
   // Datos para KPIs
@@ -365,53 +365,53 @@ const ResumenTab = () => {
               <tbody>
                 <tr className="hover:bg-[#f1f5f9]">
                   <td className="py-3 px-4 border-b border-[#e2e8f0]">Arequipa</td>
-                  <td className="py-3 px-4 border-b border-[#e2e8f0]">32</td>
+                  <td className="py-3 px-4 border-b border-[#e2e8f0]">45</td>
                   <td className="py-3 px-4 border-b border-[#e2e8f0]">Carlos Nina</td>
                   <td className="py-3 px-4 border-b border-[#e2e8f0]">
                     <div className="flex items-center gap-3">
                       <div className="flex-1 max-w-[200px] h-2 bg-[#f1f5f9] rounded-full overflow-hidden">
-                        <div className="h-full bg-[#1a56db] rounded-full" style={{ width: '37%' }}></div>
+                        <div className="h-full bg-[#1a56db] rounded-full" style={{ width: '25%' }}></div>
                       </div>
-                      <span>37%</span>
-                    </div>
-                  </td>
-                </tr>
-                <tr className="hover:bg-[#f1f5f9]">
-                  <td className="py-3 px-4 border-b border-[#e2e8f0]">Lima</td>
-                  <td className="py-3 px-4 border-b border-[#e2e8f0]">28</td>
-                  <td className="py-3 px-4 border-b border-[#e2e8f0]">María Rodríguez</td>
-                  <td className="py-3 px-4 border-b border-[#e2e8f0]">
-                    <div className="flex items-center gap-3">
-                      <div className="flex-1 max-w-[200px] h-2 bg-[#f1f5f9] rounded-full overflow-hidden">
-                        <div className="h-full bg-[#1a56db] rounded-full" style={{ width: '32%' }}></div>
-                      </div>
-                      <span>32%</span>
-                    </div>
-                  </td>
-                </tr>
-                <tr className="hover:bg-[#f1f5f9]">
-                  <td className="py-3 px-4 border-b border-[#e2e8f0]">Cusco</td>
-                  <td className="py-3 px-4 border-b border-[#e2e8f0]">15</td>
-                  <td className="py-3 px-4 border-b border-[#e2e8f0]">Pedro Quispe</td>
-                  <td className="py-3 px-4 border-b border-[#e2e8f0]">
-                    <div className="flex items-center gap-3">
-                      <div className="flex-1 max-w-[200px] h-2 bg-[#f1f5f9] rounded-full overflow-hidden">
-                        <div className="h-full bg-[#1a56db] rounded-full" style={{ width: '17%' }}></div>
-                      </div>
-                      <span>17%</span>
+                      <span>25%</span>
                     </div>
                   </td>
                 </tr>
                 <tr className="hover:bg-[#f1f5f9]">
                   <td className="py-3 px-4 border-b border-[#e2e8f0]">Trujillo</td>
-                  <td className="py-3 px-4 border-b border-[#e2e8f0]">12</td>
-                  <td className="py-3 px-4 border-b border-[#e2e8f0]">Lucia Mendoza</td>
+                  <td className="py-3 px-4 border-b border-[#e2e8f0]">32</td>
+                  <td className="py-3 px-4 border-b border-[#e2e8f0]">Roxana Gamboa</td>
                   <td className="py-3 px-4 border-b border-[#e2e8f0]">
                     <div className="flex items-center gap-3">
                       <div className="flex-1 max-w-[200px] h-2 bg-[#f1f5f9] rounded-full overflow-hidden">
-                        <div className="h-full bg-[#1a56db] rounded-full" style={{ width: '14%' }}></div>
+                        <div className="h-full bg-[#1a56db] rounded-full" style={{ width: '18%' }}></div>
                       </div>
-                      <span>14%</span>
+                      <span>18%</span>
+                    </div>
+                  </td>
+                </tr>
+                <tr className="hover:bg-[#f1f5f9]">
+                  <td className="py-3 px-4 border-b border-[#e2e8f0]">Cusco</td>
+                  <td className="py-3 px-4 border-b border-[#e2e8f0]">22</td>
+                  <td className="py-3 px-4 border-b border-[#e2e8f0]">Percy Pillca</td>
+                  <td className="py-3 px-4 border-b border-[#e2e8f0]">
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1 max-w-[200px] h-2 bg-[#f1f5f9] rounded-full overflow-hidden">
+                        <div className="h-full bg-[#1a56db] rounded-full" style={{ width: '12%' }}></div>
+                      </div>
+                      <span>12%</span>
+                    </div>
+                  </td>
+                </tr>
+                <tr className="hover:bg-[#f1f5f9]">
+                  <td className="py-3 px-4 border-b border-[#e2e8f0]">Piura</td>
+                  <td className="py-3 px-4 border-b border-[#e2e8f0]">18</td>
+                  <td className="py-3 px-4 border-b border-[#e2e8f0]">Percy Bereche</td>
+                  <td className="py-3 px-4 border-b border-[#e2e8f0]">
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1 max-w-[200px] h-2 bg-[#f1f5f9] rounded-full overflow-hidden">
+                        <div className="h-full bg-[#1a56db] rounded-full" style={{ width: '10%' }}></div>
+                      </div>
+                      <span>10%</span>
                     </div>
                   </td>
                 </tr>

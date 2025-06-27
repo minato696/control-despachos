@@ -50,38 +50,83 @@ interface AppContextType {
   saveDespachos: (nuevosDespachos: Despacho[]) => void
 }
 
-// Datos iniciales de reporteros (igual que en el HTML compartido)
+// Datos actualizados de reporteros basados en el archivo Excel
 const initialReporteros: ReporterosMap = {
+  abancay: [
+    { id: 1, nombre: 'Genaro Nuñez' }
+  ],
   arequipa: [
-    { id: 1, nombre: 'Carlos Nina' }
+    { id: 2, nombre: 'Richard Calcina' },
+    { id: 3, nombre: 'Carlos Nina' },
+    { id: 4, nombre: 'Diego Condori' }
   ],
-  lima: [
-    { id: 2, nombre: 'María Rodríguez' },
-    { id: 3, nombre: 'Juan López' }
+  ayacucho: [
+    { id: 5, nombre: 'Leonardo Ripas' }
   ],
-  cusco: [
-    { id: 4, nombre: 'Pedro Quispe' }
+  barranca: [
+    { id: 6, nombre: 'Sally Chaquilano' }
   ],
-  trujillo: [
-    { id: 5, nombre: 'Lucia Mendoza' }
-  ],
-  huancayo: [
-    { id: 10, nombre: 'Miguel Ángel Rojas' }
-  ],
-  piura: [
-    { id: 6, nombre: 'Roberto Paz' }
+  cajamarca: [
+    { id: 7, nombre: 'Alvaro Franco' }
   ],
   chiclayo: [
-    { id: 7, nombre: 'Carla Torres' }
+    { id: 8, nombre: 'Noeli Bracamonte' }
   ],
-  tacna: [
-    { id: 8, nombre: 'Jorge Mendoza' }
+  chincha: [
+    { id: 9, nombre: 'Christian Auris' }
+  ],
+  cusco: [
+    { id: 10, nombre: 'Percy Pillca' }
+  ],
+  huancayo: [
+    { id: 11, nombre: 'Christian Canchapoma' }
+  ],
+  huaral: [
+    { id: 12, nombre: 'Carlos Mesias' }
+  ],
+  huaraz: [
+    { id: 13, nombre: 'Milagros Herrera' }
+  ],
+  huacho: [
+    { id: 14, nombre: 'Erick Aldabe' }
   ],
   ica: [
-    { id: 9, nombre: 'Susana Pérez' }
+    { id: 15, nombre: 'Rogger Espino' }
   ],
-  pucallpa: [
-    { id: 11, nombre: 'Ana María Gutiérrez' }
+  iquitos: [
+    { id: 16, nombre: 'Omar Rios' }
+  ],
+  juliaca: [
+    { id: 17, nombre: 'Jose Luis Yupanqui' }
+  ],
+  mollendo: [
+    { id: 18, nombre: 'Gabriel Castro' }
+  ],
+  piura: [
+    { id: 19, nombre: 'Percy Bereche' }
+  ],
+  pisco: [
+    { id: 20, nombre: 'Giusepi Mozo' }
+  ],
+  puerto_maldonado: [
+    { id: 21, nombre: 'Gilbert Galindo' }
+  ],
+  tacna: [
+    { id: 22, nombre: 'Elizabeth Ticona' }
+  ],
+  tarapoto: [
+    { id: 23, nombre: 'Armando Murriera' }
+  ],
+  trujillo: [
+    { id: 24, nombre: 'Roxana Gamboa' },
+    { id: 25, nombre: 'Anabel Santos' },
+    { id: 26, nombre: 'Pedro Concepción' }
+  ],
+  tumbes: [
+    { id: 27, nombre: 'Carlos Esteves' }
+  ],
+  yurimaguas: [
+    { id: 28, nombre: 'Luis Canevaro' }
   ]
 }
 
@@ -90,7 +135,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined)
 export function AppProvider({ children }: { children: ReactNode }) {
   // Estados
   const [currentDate, setCurrentDate] = useState<Date>(new Date())
-  const [selectedCity, setSelectedCity] = useState<string>('lima')
+  const [selectedCity, setSelectedCity] = useState<string>('arequipa')
   const [reporteros, setReporteros] = useState<ReporterosMap>(initialReporteros)
   const [despachos, setDespachos] = useState<Despacho[]>([])
   const [activeTab, setActiveTab] = useState<string>('registro')

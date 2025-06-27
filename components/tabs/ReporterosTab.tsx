@@ -21,29 +21,43 @@ const ReporterosTab = () => {
     reporter.city.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
-  // Mapeo de ciudades a nombres en español
+  // Mapeo de ciudades a nombres en español con primera letra mayúscula
   const cityNameMap: {[key: string]: string} = {
+    'abancay': 'Abancay',
     'arequipa': 'Arequipa',
-    'lima': 'Lima',
-    'cusco': 'Cusco',
-    'trujillo': 'Trujillo',
-    'huancayo': 'Huancayo',
-    'piura': 'Piura',
+    'ayacucho': 'Ayacucho',
+    'barranca': 'Barranca',
+    'cajamarca': 'Cajamarca',
     'chiclayo': 'Chiclayo',
-    'tacna': 'Tacna',
+    'chincha': 'Chincha',
+    'cusco': 'Cusco',
+    'huancayo': 'Huancayo',
+    'huaral': 'Huaral',
+    'huaraz': 'Huaraz',
+    'huacho': 'Huacho',
     'ica': 'Ica',
-    'pucallpa': 'Pucallpa'
+    'iquitos': 'Iquitos',
+    'juliaca': 'Juliaca',
+    'mollendo': 'Mollendo',
+    'piura': 'Piura',
+    'pisco': 'Pisco',
+    'puerto_maldonado': 'Puerto Maldonado',
+    'tacna': 'Tacna',
+    'tarapoto': 'Tarapoto',
+    'trujillo': 'Trujillo',
+    'tumbes': 'Tumbes',
+    'yurimaguas': 'Yurimaguas'
   }
 
   // Datos de ejemplo para completar la tabla
   const reporterData = [
-    { id: 1, nombre: 'Carlos Nina', ciudad: 'Arequipa', despachos: 5, ultimoDespacho: 'Hoy, 10:30', estado: 'Activo' },
-    { id: 2, nombre: 'María Rodríguez', ciudad: 'Lima', despachos: 7, ultimoDespacho: 'Hoy, 11:45', estado: 'Activo' },
-    { id: 3, nombre: 'Juan López', ciudad: 'Lima', despachos: 6, ultimoDespacho: 'Ayer, 15:20', estado: 'Activo' },
-    { id: 4, nombre: 'Pedro Quispe', ciudad: 'Cusco', despachos: 4, ultimoDespacho: 'Ayer, 14:10', estado: 'Activo' },
-    { id: 5, nombre: 'Lucia Mendoza', ciudad: 'Trujillo', despachos: 5, ultimoDespacho: 'Ayer, 16:30', estado: 'Activo' },
-    { id: 10, nombre: 'Miguel Ángel Rojas', ciudad: 'Huancayo', despachos: 3, ultimoDespacho: '20/06/2025, 09:15', estado: 'Ausente' },
-    { id: 6, nombre: 'Roberto Paz', ciudad: 'Piura', despachos: 2, ultimoDespacho: '19/06/2025, 11:30', estado: 'Inactivo' }
+    { id: 2, nombre: 'Richard Calcina', ciudad: 'Arequipa', despachos: 7, ultimoDespacho: 'Hoy, 10:30', estado: 'Activo' },
+    { id: 3, nombre: 'Carlos Nina', ciudad: 'Arequipa', despachos: 5, ultimoDespacho: 'Hoy, 11:45', estado: 'Activo' },
+    { id: 4, nombre: 'Diego Condori', ciudad: 'Arequipa', despachos: 4, ultimoDespacho: 'Ayer, 15:20', estado: 'Activo' },
+    { id: 10, nombre: 'Percy Pillca', ciudad: 'Cusco', despachos: 6, ultimoDespacho: 'Ayer, 14:10', estado: 'Activo' },
+    { id: 24, nombre: 'Roxana Gamboa', ciudad: 'Trujillo', despachos: 5, ultimoDespacho: 'Ayer, 16:30', estado: 'Activo' },
+    { id: 11, nombre: 'Christian Canchapoma', ciudad: 'Huancayo', despachos: 3, ultimoDespacho: '20/06/2025, 09:15', estado: 'Ausente' },
+    { id: 19, nombre: 'Percy Bereche', ciudad: 'Piura', despachos: 2, ultimoDespacho: '19/06/2025, 11:30', estado: 'Inactivo' }
   ]
 
   // Función para obtener la clase de estado

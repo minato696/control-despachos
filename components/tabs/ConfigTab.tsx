@@ -43,7 +43,7 @@ const ConfigTab = () => {
                 <tbody>
                   <tr className="hover:bg-gray-light">
                     <td className="py-3 px-4 border-b border-gray-light">Arequipa</td>
-                    <td className="py-3 px-4 border-b border-gray-light">1</td>
+                    <td className="py-3 px-4 border-b border-gray-light">3</td>
                     <td className="py-3 px-4 border-b border-gray-light">32</td>
                     <td className="py-3 px-4 border-b border-gray-light">
                       <div className="flex gap-2">
@@ -57,8 +57,8 @@ const ConfigTab = () => {
                     </td>
                   </tr>
                   <tr className="hover:bg-gray-light">
-                    <td className="py-3 px-4 border-b border-gray-light">Lima</td>
-                    <td className="py-3 px-4 border-b border-gray-light">2</td>
+                    <td className="py-3 px-4 border-b border-gray-light">Trujillo</td>
+                    <td className="py-3 px-4 border-b border-gray-light">3</td>
                     <td className="py-3 px-4 border-b border-gray-light">28</td>
                     <td className="py-3 px-4 border-b border-gray-light">
                       <div className="flex gap-2">
@@ -98,12 +98,17 @@ const ConfigTab = () => {
               <div className="flex-1 max-w-[200px]">
                 <select className="w-full px-3.5 py-2.5 text-sm border border-gray-light rounded shadow-sm transition-all focus:outline-none focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-25">
                   <option value="">-- Seleccione Ciudad --</option>
+                  <option value="abancay">Abancay</option>
                   <option value="arequipa">Arequipa</option>
-                  <option value="lima">Lima</option>
+                  <option value="ayacucho">Ayacucho</option>
+                  <option value="cajamarca">Cajamarca</option>
+                  <option value="chiclayo">Chiclayo</option>
                   <option value="cusco">Cusco</option>
-                  <option value="trujillo">Trujillo</option>
                   <option value="huancayo">Huancayo</option>
+                  <option value="ica">Ica</option>
                   <option value="piura">Piura</option>
+                  <option value="tacna">Tacna</option>
+                  <option value="trujillo">Trujillo</option>
                 </select>
               </div>
               <button className="flex items-center gap-2 px-4 py-2.5 bg-primary text-white rounded shadow-sm hover:bg-primary-dark transition-colors">
@@ -146,8 +151,8 @@ const ConfigTab = () => {
                     </td>
                   </tr>
                   <tr className="hover:bg-gray-light">
-                    <td className="py-3 px-4 border-b border-gray-light">María Rodríguez</td>
-                    <td className="py-3 px-4 border-b border-gray-light">Lima</td>
+                    <td className="py-3 px-4 border-b border-gray-light">Percy Pillca</td>
+                    <td className="py-3 px-4 border-b border-gray-light">Cusco</td>
                     <td className="py-3 px-4 border-b border-gray-light">
                       <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-success-light text-success">
                         Activo
