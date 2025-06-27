@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useAppContext } from '../AppContext'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCity, faPlus, faSearch, faUser, faClipboardList } from '@fortawesome/free-solid-svg-icons'
+import { formatCityName } from '../../utils/cityUtils'
 
 const CiudadesTab = () => {
   const { reporteros, setActiveTab, setSelectedCity } = useAppContext()
@@ -9,40 +10,13 @@ const CiudadesTab = () => {
 
   // Filtrar ciudades según búsqueda
   const filteredCities = Object.keys(reporteros)
-    .filter(city => city.includes(searchTerm.toLowerCase()))
+    .filter(city => city.includes(searchTerm.toLowerCase()) || 
+                    formatCityName(city).toLowerCase().includes(searchTerm.toLowerCase()))
 
   // Función para seleccionar ciudad y cambiar a pestaña de registro
   const selectCityAndTab = (city: string) => {
     setSelectedCity(city)
     setActiveTab('registro')
-  }
-
-  // Mapeo de ciudades a nombres en español con primera letra mayúscula
-  const cityNameMap: {[key: string]: string} = {
-    'abancay': 'Abancay',
-    'arequipa': 'Arequipa',
-    'ayacucho': 'Ayacucho',
-    'barranca': 'Barranca',
-    'cajamarca': 'Cajamarca',
-    'chiclayo': 'Chiclayo',
-    'chincha': 'Chincha',
-    'cusco': 'Cusco',
-    'huancayo': 'Huancayo',
-    'huaral': 'Huaral',
-    'huaraz': 'Huaraz',
-    'huacho': 'Huacho',
-    'ica': 'Ica',
-    'iquitos': 'Iquitos',
-    'juliaca': 'Juliaca',
-    'mollendo': 'Mollendo',
-    'piura': 'Piura',
-    'pisco': 'Pisco',
-    'puerto_maldonado': 'Puerto Maldonado',
-    'tacna': 'Tacna',
-    'tarapoto': 'Tarapoto',
-    'trujillo': 'Trujillo',
-    'tumbes': 'Tumbes',
-    'yurimaguas': 'Yurimaguas'
   }
 
   return (
@@ -81,7 +55,7 @@ const CiudadesTab = () => {
             >
               <div className="flex justify-between items-center pb-4 border-b border-[#e2e8f0] mb-4">
                 <h3 className="text-lg font-semibold text-[#1a365d]">
-                  {cityNameMap[city] || city.charAt(0).toUpperCase() + city.slice(1)}
+                  {formatCityName(city)}
                 </h3>
                 <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-[#e0f2fe] text-[#1a56db]">
                   {cityReporters.length} {cityReporters.length === 1 ? 'reportero' : 'reporteros'}

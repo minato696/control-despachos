@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useAppContext } from '../AppContext'
+import { getCityOptions } from '../../utils/cityUtils'
 
 interface AddReporterModalProps {
   show: boolean
@@ -7,9 +8,12 @@ interface AddReporterModalProps {
 }
 
 const AddReporterModal: React.FC<AddReporterModalProps> = ({ show, onClose }) => {
-  const { addReportero } = useAppContext()
+  const { addReportero, reporteros } = useAppContext()
   const [nombre, setNombre] = useState('')
   const [ciudad, setCiudad] = useState('')
+
+  // Generar opciones de ciudades usando la utilidad
+  const cities = getCityOptions(Object.keys(reporteros))
 
   const handleSubmit = () => {
     if (nombre.trim() === '') {
@@ -65,17 +69,11 @@ const AddReporterModal: React.FC<AddReporterModalProps> = ({ show, onClose }) =>
               value={ciudad}
               onChange={(e) => setCiudad(e.target.value)}
             >
-              <option value="">-- Seleccione Ciudad --</option>
-              <option value="arequipa">Arequipa</option>
-              <option value="lima">Lima</option>
-              <option value="cusco">Cusco</option>
-              <option value="trujillo">Trujillo</option>
-              <option value="huancayo">Huancayo</option>
-              <option value="piura">Piura</option>
-              <option value="chiclayo">Chiclayo</option>
-              <option value="tacna">Tacna</option>
-              <option value="ica">Ica</option>
-              <option value="pucallpa">Pucallpa</option>
+              {cities.map((city) => (
+                <option key={city.value} value={city.value}>
+                  {city.label}
+                </option>
+              ))}
             </select>
           </div>
         </div>

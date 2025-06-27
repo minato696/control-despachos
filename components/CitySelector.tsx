@@ -3,22 +3,13 @@
 import { useAppContext } from './AppContext'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faUsers } from '@fortawesome/free-solid-svg-icons'
+import { getCityOptions } from '../utils/cityUtils'
 
 const CitySelector = () => {
   const { selectedCity, setSelectedCity, reporteros } = useAppContext()
 
-  const cities = [
-    { value: "", label: "-- Seleccione Ciudad --" },
-    { value: "arequipa", label: "Arequipa" },
-    { value: "cusco", label: "Cusco" },
-    { value: "trujillo", label: "Trujillo" },
-    { value: "huancayo", label: "Huancayo" },
-    { value: "piura", label: "Piura" },
-    { value: "chiclayo", label: "Chiclayo" },
-    { value: "tacna", label: "Tacna" },
-    { value: "ica", label: "Ica" },
-    { value: "pucallpa", label: "Pucallpa" }
-  ]
+  // Generar opciones de ciudades usando la utilidad
+  const cities = getCityOptions(Object.keys(reporteros))
 
   // Contar reporteros disponibles para la ciudad seleccionada
   const reporterCount = selectedCity ? (reporteros[selectedCity]?.length || 0) : 0
