@@ -1,49 +1,117 @@
-import { useState } from 'react'
+// components/tabs/ResumenTab.tsx
+import { useState, useEffect } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { 
   faChartBar, faClipboardList, faUserCheck, faCity, faArrowUp,
-  faGlobe, faLocationDot, faCalendarCheck, faChartLine, faMapMarkerAlt,
-  faVideo, faCheckCircle, faExclamationTriangle, faPercentage
+  faGlobe, faSpinner, faVideo, faCheckCircle, faExclamationTriangle
 } from '@fortawesome/free-solid-svg-icons'
+
+interface Estadisticas {
+  totalDespachos: number
+  promedioDespachosDiarios: number
+  reporterosActivos: number
+  coberturaNacional: number
+  despachosEnVivo: number
+  porcentajeEnVivo: number
+  despachosConProblemas: number
+  porcentajeConProblemas: number
+  topCiudades: Array<{
+    id: number
+    nombre: string
+    despachos: number
+    porcentaje: number
+  }>
+  topReporteros: Array<{
+    id: number
+    nombre: string
+    ciudad: string
+    despachos: number
+    porcentaje: number
+  }>
+  despachosPorDia: Array<{
+    dia: string
+    total: number
+  }>
+}
 
 const ResumenTab = () => {
   const [weekSelect, setWeekSelect] = useState('3')
-  const [periodoSelect, setperiodoSelect] = useState('semanal')
+  const [periodoSelect, setPeriodoSelect] = useState('semanal')
+  const [estadisticas, setEstadisticas] = useState<Estadisticas | null>(null)
+  const [loading, setLoading] = useState(true)
 
-  // Datos simulados para las nuevas estadísticas (actualizados con las ciudades correctas)
-  const topCiudades = [
-    { ciudad: 'Arequipa', despachos: 45, porcentaje: 25 },
-    { ciudad: 'Trujillo', despachos: 32, porcentaje: 18 },
-    { ciudad: 'Cusco', despachos: 22, porcentaje: 12 },
-    { ciudad: 'Piura', despachos: 18, porcentaje: 10 },
-    { ciudad: 'Chiclayo', despachos: 15, porcentaje: 8 },
-  ]
+  // Cargar estadísticas desde la API
+  useEffect(() => {
+    const fetchEstadisticas = async () => {
+      setLoading(true)
+      try {
+        const response = await fetch(`/api/estadisticas?periodo=${periodoSelect}`)
+        if (!response.ok) {
+          throw new Error('Error al obtener estadísticas')
+        }
+        const data = await response.json()
+        setEstadisticas(data)
+      } catch (error) {
+        console.error('Error al cargar estadísticas:', error)
+        // Usar datos de ejemplo si hay error
+        setEstadisticas({
+          totalDespachos: 178,
+          promedioDespachosDiarios: 25.4,
+          reporterosActivos: 18,
+          coberturaNacional: 76,
+          despachosEnVivo: 42,
+          porcentajeEnVivo: 23.6,
+          despachosConProblemas: 3,
+          porcentajeConProblemas: 1.7,
+          topCiudades: [
+            { id: 1, nombre: 'Arequipa', despachos: 45, porcentaje: 25 },
+            { id: 2, nombre: 'Trujillo', despachos: 32, porcentaje: 18 },
+            { id: 3, nombre: 'Cusco', despachos: 22, porcentaje: 12 },
+            { id: 4, nombre: 'Piura', despachos: 18, porcentaje: 10 },
+            { id: 5, nombre: 'Chiclayo', despachos: 15, porcentaje: 8 }
+          ],
+          topReporteros: [
+            { id: 3, nombre: 'Carlos Nina', ciudad: 'Arequipa', despachos: 15, porcentaje: 8 },
+            { id: 2, nombre: 'Richard Calcina', ciudad: 'Arequipa', despachos: 12, porcentaje: 7 },
+            { id: 10, nombre: 'Percy Pillca', ciudad: 'Cusco', despachos: 10, porcentaje: 6 },
+            { id: 24, nombre: 'Roxana Gamboa', ciudad: 'Trujillo', despachos: 9, porcentaje: 5 },
+            { id: 4, nombre: 'Diego Condori', ciudad: 'Arequipa', despachos: 8, porcentaje: 4 }
+          ],
+          despachosPorDia: [
+            { dia: '2025-06-22', total: 12 },
+            { dia: '2025-06-23', total: 18 },
+            { dia: '2025-06-24', total: 14 },
+            { dia: '2025-06-25', total: 10 },
+            { dia: '2025-06-26', total: 16 },
+            { dia: '2025-06-27', total: 9 },
+            { dia: '2025-06-28', total: 8 }
+          ]
+        })
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    fetchEstadisticas()
+  }, [periodoSelect])
 
-  const topReporteros = [
-    { nombre: 'Carlos Nina', ciudad: 'Arequipa', despachos: 15, porcentaje: 8 },
-    { nombre: 'Richard Calcina', ciudad: 'Arequipa', despachos: 12, porcentaje: 7 },
-    { nombre: 'Percy Pillca', ciudad: 'Cusco', despachos: 10, porcentaje: 6 },
-    { nombre: 'Roxana Gamboa', ciudad: 'Trujillo', despachos: 9, porcentaje: 5 },
-    { nombre: 'Diego Condori', ciudad: 'Arequipa', despachos: 8, porcentaje: 4 },
-  ]
-
-  // Datos para KPIs
-  const kpis = {
-    totalDespachos: 178,
-    promedioDespachosDiarios: 25.4,
-    reporterosActivos: 18,
-    coberturaNacional: 76,
-    cumplimientoMetas: 92,
-    totalEnVivo: 42,
-    despachosConProblemas: 3
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center p-10">
+        <FontAwesomeIcon icon={faSpinner} spin className="text-3xl text-primary mr-3" />
+        <span className="text-lg">Cargando estadísticas...</span>
+      </div>
+    )
   }
 
-  // Datos para el gráfico de tendencia
-  const tendenciaSemanal = [
-    { semana: 'Sem 1', despachos: 143 },
-    { semana: 'Sem 2', despachos: 156 },
-    { semana: 'Sem 3', despachos: 178 },
-  ]
+  // Si no hay estadísticas, mostrar mensaje
+  if (!estadisticas) {
+    return (
+      <div className="text-center p-8 bg-[#f8fafc] rounded-lg border border-[#e2e8f0] text-[#64748b]">
+        <p>No hay datos estadísticos disponibles.</p>
+      </div>
+    )
+  }
 
   return (
     <div>
@@ -56,7 +124,7 @@ const ResumenTab = () => {
           <select 
             className="px-3.5 py-2.5 text-sm border border-[#e2e8f0] rounded-lg shadow-sm transition-all focus:outline-none focus:border-[#1a56db] focus:ring focus:ring-[#1a56db] focus:ring-opacity-25"
             value={periodoSelect}
-            onChange={(e) => setperiodoSelect(e.target.value)}
+            onChange={(e) => setPeriodoSelect(e.target.value)}
           >
             <option value="diario">Diario</option>
             <option value="semanal">Semanal</option>
@@ -81,7 +149,7 @@ const ResumenTab = () => {
           <div className="flex items-center justify-between">
             <div>
               <h4 className="text-sm text-[#64748b] font-medium">Total Despachos</h4>
-              <p className="text-2xl font-bold mt-1 mb-0 text-[#1e293b]">{kpis.totalDespachos}</p>
+              <p className="text-2xl font-bold mt-1 mb-0 text-[#1e293b]">{estadisticas.totalDespachos}</p>
             </div>
             <div className="w-10 h-10 rounded-full bg-[#e0f2fe] text-[#1a56db] flex items-center justify-center text-xl">
               <FontAwesomeIcon icon={faClipboardList} />
@@ -97,10 +165,10 @@ const ResumenTab = () => {
           <div className="flex items-center justify-between">
             <div>
               <h4 className="text-sm text-[#64748b] font-medium">Promedio Diario</h4>
-              <p className="text-2xl font-bold mt-1 mb-0 text-[#1e293b]">{kpis.promedioDespachosDiarios}</p>
+              <p className="text-2xl font-bold mt-1 mb-0 text-[#1e293b]">{estadisticas.promedioDespachosDiarios}</p>
             </div>
             <div className="w-10 h-10 rounded-full bg-[#ecfdf5] text-[#10b981] flex items-center justify-center text-xl">
-              <FontAwesomeIcon icon={faCalendarCheck} />
+              <FontAwesomeIcon icon={faClipboardList} />
             </div>
           </div>
           <div className="mt-2 text-sm text-[#10b981] flex items-center">
@@ -113,7 +181,7 @@ const ResumenTab = () => {
           <div className="flex items-center justify-between">
             <div>
               <h4 className="text-sm text-[#64748b] font-medium">Reporteros Activos</h4>
-              <p className="text-2xl font-bold mt-1 mb-0 text-[#1e293b]">{kpis.reporterosActivos}</p>
+              <p className="text-2xl font-bold mt-1 mb-0 text-[#1e293b]">{estadisticas.reporterosActivos}</p>
             </div>
             <div className="w-10 h-10 rounded-full bg-[#fffbeb] text-[#f59e0b] flex items-center justify-center text-xl">
               <FontAwesomeIcon icon={faUserCheck} />
@@ -129,7 +197,7 @@ const ResumenTab = () => {
           <div className="flex items-center justify-between">
             <div>
               <h4 className="text-sm text-[#64748b] font-medium">Cobertura Nacional</h4>
-              <p className="text-2xl font-bold mt-1 mb-0 text-[#1e293b]">{kpis.coberturaNacional}%</p>
+              <p className="text-2xl font-bold mt-1 mb-0 text-[#1e293b]">{estadisticas.coberturaNacional}%</p>
             </div>
             <div className="w-10 h-10 rounded-full bg-[#eff6ff] text-[#3b82f6] flex items-center justify-center text-xl">
               <FontAwesomeIcon icon={faGlobe} />
@@ -151,11 +219,11 @@ const ResumenTab = () => {
             </div>
             <div>
               <h4 className="text-sm text-[#64748b] font-medium">Despachos En Vivo</h4>
-              <p className="text-xl font-bold mt-0.5 mb-0 text-[#1e293b]">{kpis.totalEnVivo}</p>
+              <p className="text-xl font-bold mt-0.5 mb-0 text-[#1e293b]">{estadisticas.despachosEnVivo}</p>
             </div>
           </div>
           <div className="text-xl font-semibold text-[#1a56db]">
-            {Math.round((kpis.totalEnVivo / kpis.totalDespachos) * 100)}%
+            {estadisticas.porcentajeEnVivo}%
           </div>
         </div>
 
@@ -166,11 +234,11 @@ const ResumenTab = () => {
             </div>
             <div>
               <h4 className="text-sm text-[#64748b] font-medium">Cumplimiento de Metas</h4>
-              <p className="text-xl font-bold mt-0.5 mb-0 text-[#1e293b]">{kpis.cumplimientoMetas}%</p>
+              <p className="text-xl font-bold mt-0.5 mb-0 text-[#1e293b]">92%</p>
             </div>
           </div>
           <div className="w-20 h-4 bg-[#f1f5f9] rounded-full overflow-hidden">
-            <div className="h-full bg-[#10b981] rounded-full" style={{ width: `${kpis.cumplimientoMetas}%` }}></div>
+            <div className="h-full bg-[#10b981] rounded-full" style={{ width: `92%` }}></div>
           </div>
         </div>
 
@@ -181,99 +249,11 @@ const ResumenTab = () => {
             </div>
             <div>
               <h4 className="text-sm text-[#64748b] font-medium">Despachos con Problemas</h4>
-              <p className="text-xl font-bold mt-0.5 mb-0 text-[#1e293b]">{kpis.despachosConProblemas}</p>
+              <p className="text-xl font-bold mt-0.5 mb-0 text-[#1e293b]">{estadisticas.despachosConProblemas}</p>
             </div>
           </div>
           <div className="text-xl font-semibold text-[#ef4444]">
-            {Math.round((kpis.despachosConProblemas / kpis.totalDespachos) * 100)}%
-          </div>
-        </div>
-      </div>
-
-      {/* Mapa y tendencias */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* Gráfico de tendencia */}
-<div className="bg-white rounded-lg shadow">
-  <div className="p-4 border-b border-[#e2e8f0]">
-    <h3 className="font-semibold text-[#1a365d] flex items-center gap-2">
-      <FontAwesomeIcon icon={faChartLine} className="text-[#1a56db]" />
-      Tendencia de Despachos
-    </h3>
-  </div>
-  <div className="p-6">
-    <div className="flex items-end justify-around h-[220px] relative">
-      {/* Semana 1 */}
-      <div className="flex flex-col items-center">
-        <div className="px-2 py-1 bg-[#1a56db] text-white text-xs font-semibold rounded mb-1">
-          143
-        </div>
-        <div 
-          className="w-24 bg-[#1a56db] rounded-t-md group hover:bg-[#1e429f] transition-all cursor-pointer"
-          style={{ height: `${(143 / 200) * 180}px` }}
-        ></div>
-        <div className="text-xs text-[#64748b] mt-2">Sem 1</div>
-      </div>
-      
-      {/* Semana 2 */}
-      <div className="flex flex-col items-center">
-        <div className="px-2 py-1 bg-[#1a56db] text-white text-xs font-semibold rounded mb-1">
-          156
-        </div>
-        <div 
-          className="w-24 bg-[#1a56db] rounded-t-md group hover:bg-[#1e429f] transition-all cursor-pointer"
-          style={{ height: `${(156 / 200) * 180}px` }}
-        ></div>
-        <div className="text-xs text-[#64748b] mt-2">Sem 2</div>
-      </div>
-      
-      {/* Semana 3 */}
-      <div className="flex flex-col items-center">
-        <div className="px-2 py-1 bg-[#1a56db] text-white text-xs font-semibold rounded mb-1">
-          178
-        </div>
-        <div 
-          className="w-24 bg-[#1a56db] rounded-t-md group hover:bg-[#1e429f] transition-all cursor-pointer"
-          style={{ height: `${(178 / 200) * 180}px` }}
-        ></div>
-        <div className="text-xs text-[#64748b] mt-2">Sem 3</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-        {/* Mapa de cobertura */}
-        <div className="bg-white rounded-lg shadow">
-          <div className="p-4 border-b border-[#e2e8f0]">
-            <h3 className="font-semibold text-[#1a365d] flex items-center gap-2">
-              <FontAwesomeIcon icon={faMapMarkerAlt} className="text-[#1a56db]" />
-              Cobertura Nacional
-            </h3>
-          </div>
-          <div className="p-6">
-            <div className="flex justify-center items-center h-[220px] bg-[#f8fafc] rounded-lg">
-              {/* Aquí iría un mapa real de Perú, esto es una representación simple */}
-              <div className="text-center">
-                <div className="text-5xl text-[#1a56db] mb-3">
-                  <FontAwesomeIcon icon={faGlobe} />
-                </div>
-                <div className="text-xl font-semibold text-[#1a56db] mb-1">{kpis.coberturaNacional}% de cobertura</div>
-                <div className="text-sm text-[#64748b]">18 de 24 departamentos</div>
-                <div className="mt-3 flex justify-center gap-4">
-                  <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 rounded-full bg-[#1a56db]"></div>
-                    <span className="text-xs text-[#64748b]">Alta cobertura</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 rounded-full bg-[#93c5fd]"></div>
-                    <span className="text-xs text-[#64748b]">Media cobertura</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 rounded-full bg-[#dbeafe]"></div>
-                    <span className="text-xs text-[#64748b]">Baja cobertura</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+            {estadisticas.porcentajeConProblemas}%
           </div>
         </div>
       </div>
@@ -290,10 +270,10 @@ const ResumenTab = () => {
           </div>
           <div className="p-6">
             <div className="space-y-4">
-              {topCiudades.map((ciudad, index) => (
-                <div key={index} className="flex items-center">
+              {estadisticas.topCiudades.map((ciudad, index) => (
+                <div key={ciudad.id} className="flex items-center">
                   <div className="w-6 text-xs text-[#64748b] font-medium">{index + 1}.</div>
-                  <div className="w-24 md:w-32 font-medium text-[#1e293b]">{ciudad.ciudad}</div>
+                  <div className="w-24 md:w-32 font-medium text-[#1e293b]">{ciudad.nombre}</div>
                   <div className="flex-1">
                     <div className="flex items-center gap-3">
                       <div className="flex-1 h-2 bg-[#f1f5f9] rounded-full overflow-hidden">
@@ -322,8 +302,8 @@ const ResumenTab = () => {
           </div>
           <div className="p-6">
             <div className="space-y-4">
-              {topReporteros.map((reportero, index) => (
-                <div key={index} className="flex items-center">
+              {estadisticas.topReporteros.map((reportero, index) => (
+                <div key={reportero.id} className="flex items-center">
                   <div className="w-6 text-xs text-[#64748b] font-medium">{index + 1}.</div>
                   <div className="w-28 md:w-40 font-medium text-[#1e293b]">{reportero.nombre}</div>
                   <div className="w-16 md:w-20 text-xs text-[#64748b]">{reportero.ciudad}</div>
@@ -346,131 +326,38 @@ const ResumenTab = () => {
         </div>
       </div>
 
-      {/* Tabla de despachos por ciudad */}
-      <div className="bg-white rounded-lg shadow mb-6">
-        <div className="p-4 border-b border-[#e2e8f0]">
-          <h3 className="font-semibold text-[#1a365d]">Despachos por Ciudad</h3>
-        </div>
-        <div className="p-6">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr>
-                  <th className="text-left py-3 px-4 bg-[#f1f5f9] font-semibold text-[#475569] border-b border-[#e2e8f0]">Ciudad</th>
-                  <th className="text-left py-3 px-4 bg-[#f1f5f9] font-semibold text-[#475569] border-b border-[#e2e8f0]">Total Despachos</th>
-                  <th className="text-left py-3 px-4 bg-[#f1f5f9] font-semibold text-[#475569] border-b border-[#e2e8f0]">Reportero más Activo</th>
-                  <th className="text-left py-3 px-4 bg-[#f1f5f9] font-semibold text-[#475569] border-b border-[#e2e8f0]">Porcentaje</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="hover:bg-[#f1f5f9]">
-                  <td className="py-3 px-4 border-b border-[#e2e8f0]">Arequipa</td>
-                  <td className="py-3 px-4 border-b border-[#e2e8f0]">45</td>
-                  <td className="py-3 px-4 border-b border-[#e2e8f0]">Carlos Nina</td>
-                  <td className="py-3 px-4 border-b border-[#e2e8f0]">
-                    <div className="flex items-center gap-3">
-                      <div className="flex-1 max-w-[200px] h-2 bg-[#f1f5f9] rounded-full overflow-hidden">
-                        <div className="h-full bg-[#1a56db] rounded-full" style={{ width: '25%' }}></div>
-                      </div>
-                      <span>25%</span>
-                    </div>
-                  </td>
-                </tr>
-                <tr className="hover:bg-[#f1f5f9]">
-                  <td className="py-3 px-4 border-b border-[#e2e8f0]">Trujillo</td>
-                  <td className="py-3 px-4 border-b border-[#e2e8f0]">32</td>
-                  <td className="py-3 px-4 border-b border-[#e2e8f0]">Roxana Gamboa</td>
-                  <td className="py-3 px-4 border-b border-[#e2e8f0]">
-                    <div className="flex items-center gap-3">
-                      <div className="flex-1 max-w-[200px] h-2 bg-[#f1f5f9] rounded-full overflow-hidden">
-                        <div className="h-full bg-[#1a56db] rounded-full" style={{ width: '18%' }}></div>
-                      </div>
-                      <span>18%</span>
-                    </div>
-                  </td>
-                </tr>
-                <tr className="hover:bg-[#f1f5f9]">
-                  <td className="py-3 px-4 border-b border-[#e2e8f0]">Cusco</td>
-                  <td className="py-3 px-4 border-b border-[#e2e8f0]">22</td>
-                  <td className="py-3 px-4 border-b border-[#e2e8f0]">Percy Pillca</td>
-                  <td className="py-3 px-4 border-b border-[#e2e8f0]">
-                    <div className="flex items-center gap-3">
-                      <div className="flex-1 max-w-[200px] h-2 bg-[#f1f5f9] rounded-full overflow-hidden">
-                        <div className="h-full bg-[#1a56db] rounded-full" style={{ width: '12%' }}></div>
-                      </div>
-                      <span>12%</span>
-                    </div>
-                  </td>
-                </tr>
-                <tr className="hover:bg-[#f1f5f9]">
-                  <td className="py-3 px-4 border-b border-[#e2e8f0]">Piura</td>
-                  <td className="py-3 px-4 border-b border-[#e2e8f0]">18</td>
-                  <td className="py-3 px-4 border-b border-[#e2e8f0]">Percy Bereche</td>
-                  <td className="py-3 px-4 border-b border-[#e2e8f0]">
-                    <div className="flex items-center gap-3">
-                      <div className="flex-1 max-w-[200px] h-2 bg-[#f1f5f9] rounded-full overflow-hidden">
-                        <div className="h-full bg-[#1a56db] rounded-full" style={{ width: '10%' }}></div>
-                      </div>
-                      <span>10%</span>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
       {/* Gráfico de despachos por día */}
-      <div className="bg-white rounded-lg shadow">
+      <div className="bg-white rounded-lg shadow mb-6">
         <div className="p-4 border-b border-[#e2e8f0]">
           <h3 className="font-semibold text-[#1a365d]">Despachos por Día</h3>
         </div>
         <div className="p-6">
           <div className="h-[300px] relative">
-            {/* Lunes */}
-            <div className="absolute left-[50px] bottom-0 w-[30px] h-[120px] bg-[#1a56db] rounded-t-md cursor-pointer hover:bg-[#1e429f] group transition-all">
-              <div className="absolute top-[-25px] w-[60px] left-[-15px] text-center font-semibold text-xs text-[#1a56db] opacity-0 group-hover:opacity-100 transition-opacity">12</div>
-            </div>
-            <div className="absolute left-[50px] bottom-[-25px] w-[60px] ml-[-15px] text-center text-xs text-[#64748b]">Lun</div>
-            
-            {/* Martes */}
-            <div className="absolute left-[150px] bottom-0 w-[30px] h-[180px] bg-[#1a56db] rounded-t-md cursor-pointer hover:bg-[#1e429f] group transition-all">
-              <div className="absolute top-[-25px] w-[60px] left-[-15px] text-center font-semibold text-xs text-[#1a56db] opacity-0 group-hover:opacity-100 transition-opacity">18</div>
-            </div>
-            <div className="absolute left-[150px] bottom-[-25px] w-[60px] ml-[-15px] text-center text-xs text-[#64748b]">Mar</div>
-            
-            {/* Miércoles */}
-            <div className="absolute left-[250px] bottom-0 w-[30px] h-[140px] bg-[#1a56db] rounded-t-md cursor-pointer hover:bg-[#1e429f] group transition-all">
-              <div className="absolute top-[-25px] w-[60px] left-[-15px] text-center font-semibold text-xs text-[#1a56db] opacity-0 group-hover:opacity-100 transition-opacity">14</div>
-            </div>
-            <div className="absolute left-[250px] bottom-[-25px] w-[60px] ml-[-15px] text-center text-xs text-[#64748b]">Mié</div>
-            
-            {/* Jueves */}
-            <div className="absolute left-[350px] bottom-0 w-[30px] h-[100px] bg-[#1a56db] rounded-t-md cursor-pointer hover:bg-[#1e429f] group transition-all">
-              <div className="absolute top-[-25px] w-[60px] left-[-15px] text-center font-semibold text-xs text-[#1a56db] opacity-0 group-hover:opacity-100 transition-opacity">10</div>
-            </div>
-            <div className="absolute left-[350px] bottom-[-25px] w-[60px] ml-[-15px] text-center text-xs text-[#64748b]">Jue</div>
-            
-            {/* Viernes */}
-            <div className="absolute left-[450px] bottom-0 w-[30px] h-[160px] bg-[#1a56db] rounded-t-md cursor-pointer hover:bg-[#1e429f] group transition-all">
-              <div className="absolute top-[-25px] w-[60px] left-[-15px] text-center font-semibold text-xs text-[#1a56db] opacity-0 group-hover:opacity-100 transition-opacity">16</div>
-            </div>
-            <div className="absolute left-[450px] bottom-[-25px] w-[60px] ml-[-15px] text-center text-xs text-[#64748b]">Vie</div>
-            
-            {/* Sábado */}
-            <div className="absolute left-[550px] bottom-0 w-[30px] h-[90px] bg-[#1a56db] rounded-t-md cursor-pointer hover:bg-[#1e429f] group transition-all">
-              <div className="absolute top-[-25px] w-[60px] left-[-15px] text-center font-semibold text-xs text-[#1a56db] opacity-0 group-hover:opacity-100 transition-opacity">9</div>
-            </div>
-            <div className="absolute left-[550px] bottom-[-25px] w-[60px] ml-[-15px] text-center text-xs text-[#64748b]">Sáb</div>
-            
-            {/* Domingo */}
-            <div className="absolute left-[650px] bottom-0 w-[30px] h-[80px] bg-[#1a56db] rounded-t-md cursor-pointer hover:bg-[#1e429f] group transition-all">
-              <div className="absolute top-[-25px] w-[60px] left-[-15px] text-center font-semibold text-xs text-[#1a56db] opacity-0 group-hover:opacity-100 transition-opacity">8</div>
-            </div>
-            <div className="absolute left-[650px] bottom-[-25px] w-[60px] ml-[-15px] text-center text-xs text-[#64748b]">Dom</div>
-            
-            {/* Línea base */}
+            {estadisticas.despachosPorDia.map((dia, index) => {
+              const left = 50 + (index * 100)
+              const height = (dia.total / 20) * 200 // Máximo 200px de altura, escalado a 20 despachos
+              const date = new Date(dia.dia)
+              const dayName = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'][date.getDay()]
+              
+              return (
+                <div key={dia.dia}>
+                  <div 
+                    className="absolute bottom-0 w-[30px] bg-[#1a56db] rounded-t-md cursor-pointer hover:bg-[#1e429f] group transition-all"
+                    style={{ left: `${left}px`, height: `${height}px` }}
+                  >
+                    <div className="absolute top-[-25px] w-[60px] left-[-15px] text-center font-semibold text-xs text-[#1a56db] opacity-0 group-hover:opacity-100 transition-opacity">
+                      {dia.total}
+                    </div>
+                  </div>
+                  <div 
+                    className="absolute bottom-[-25px] w-[60px] text-center text-xs text-[#64748b]"
+                    style={{ left: `${left - 15}px` }}
+                  >
+                    {dayName}
+                  </div>
+                </div>
+              )
+            })}
             <div className="absolute left-0 right-0 bottom-0 h-[1px] bg-[#f1f5f9]"></div>
           </div>
         </div>

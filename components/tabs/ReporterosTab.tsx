@@ -1,77 +1,203 @@
-import { useState } from 'react'
+// components/tabs/ReporterosTab.tsx
+import { useState, useEffect } from 'react'
 import { useAppContext } from '../AppContext'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { 
-  faUsers, faPlus, faSearch, faEdit, 
-  faClipboardList, faTrash
+  faUsers, faPlus, faSearch, faPencilAlt, 
+  faClipboardList, faTrash, faSpinner, faCheck, 
+  faExclamationTriangle, faBan
 } from '@fortawesome/free-solid-svg-icons'
+import { formatCityName } from '../../utils/cityUtils'
+import AddReporteroModal from '../modals/AddReporteroModal'
+
+interface Reportero {
+  id: number
+  nombre: string
+  estado: string
+  ciudad: {
+    id: number
+    codigo: string
+    nombre: string
+  }
+  despachos_count?: number
+  ultimo_despacho?: string
+}
 
 const ReporterosTab = () => {
-  const { reporteros } = useAppContext()
+  const { setActiveTab, setSelectedCity, setNotification } = useAppContext()
   const [searchTerm, setSearchTerm] = useState('')
+  const [reporteros, setReporteros] = useState<Reportero[]>([])
+  const [loading, setLoading] = useState(true)
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [selectedReportero, setSelectedReportero] = useState<Reportero | null>(null)
+  const [confirmDelete, setConfirmDelete] = useState<number | null>(null)
 
-  // Obtener todos los reporteros de todas las ciudades
-  const allReporters = Object.entries(reporteros).reduce((acc, [city, reporters]) => {
-    return [...acc, ...reporters.map(reporter => ({ ...reporter, city }))]
-  }, [] as Array<{ id: number, nombre: string, city: string }>)
+  // Cargar reporteros desde la API
+  const loadReporteros = async () => {
+    setLoading(true)
+    try {
+      // Cargar reporteros básicos
+      const response = await fetch('/api/reporteros')
+      if (!response.ok) {
+        throw new Error('Error al obtener reporteros')
+      }
+      const data = await response.json()
 
-  // Filtrar reporteros según búsqueda
-  const filteredReporters = allReporters.filter(reporter => 
-    reporter.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    reporter.city.toLowerCase().includes(searchTerm.toLowerCase())
-  )
-
-  // Mapeo de ciudades a nombres en español con primera letra mayúscula
-  const cityNameMap: {[key: string]: string} = {
-    'abancay': 'Abancay',
-    'arequipa': 'Arequipa',
-    'ayacucho': 'Ayacucho',
-    'barranca': 'Barranca',
-    'cajamarca': 'Cajamarca',
-    'chiclayo': 'Chiclayo',
-    'chincha': 'Chincha',
-    'cusco': 'Cusco',
-    'huancayo': 'Huancayo',
-    'huaral': 'Huaral',
-    'huaraz': 'Huaraz',
-    'huacho': 'Huacho',
-    'ica': 'Ica',
-    'iquitos': 'Iquitos',
-    'juliaca': 'Juliaca',
-    'mollendo': 'Mollendo',
-    'piura': 'Piura',
-    'pisco': 'Pisco',
-    'puerto_maldonado': 'Puerto Maldonado',
-    'tacna': 'Tacna',
-    'tarapoto': 'Tarapoto',
-    'trujillo': 'Trujillo',
-    'tumbes': 'Tumbes',
-    'yurimaguas': 'Yurimaguas'
+      // Cargar despachos para cada reportero
+      const reporterosCompletos = await Promise.all(data.map(async (reportero: Reportero) => {
+        try {
+          const hoy = new Date()
+          // Obtener el primer día de la semana (lunes)
+          const inicioSemana = new Date(hoy)
+          const diaSemana = hoy.getDay() || 7 // 0 es domingo, 7 es para cálculos
+          inicioSemana.setDate(hoy.getDate() - diaSemana + 1)
+          inicioSemana.setHours(0, 0, 0, 0)
+          
+          // Formatear fechas para la API
+          const fechaInicio = inicioSemana.toISOString().split('T')[0]
+          const fechaFin = hoy.toISOString().split('T')[0]
+          
+          const despachosResponse = await fetch(`/api/despachos?reportero_id=${reportero.id}&desde=${fechaInicio}&hasta=${fechaFin}`)
+          const despachos = await despachosResponse.json()
+          
+          // Ordenar despachos por fecha más reciente
+          const despachosOrdenados = despachos.sort((a: any, b: any) => {
+            return new Date(b.fecha_despacho).getTime() - new Date(a.fecha_despacho).getTime()
+          })
+          
+          return {
+            ...reportero,
+            despachos_count: despachos.length,
+            ultimo_despacho: despachosOrdenados.length > 0 
+              ? `${new Date(despachosOrdenados[0].fecha_despacho).toLocaleDateString('es-ES')}, ${despachosOrdenados[0].hora_despacho}` 
+              : 'Sin despachos'
+          }
+        } catch (error) {
+          console.error(`Error al cargar despachos para reportero ${reportero.id}:`, error)
+          return {
+            ...reportero,
+            despachos_count: 0,
+            ultimo_despacho: 'Sin despachos'
+          }
+        }
+      }))
+      
+      setReporteros(reporterosCompletos)
+    } catch (error) {
+      console.error('Error al cargar reporteros:', error)
+      setNotification({
+        show: true,
+        type: 'error',
+        title: 'Error',
+        message: 'No se pudieron cargar los reporteros'
+      })
+    } finally {
+      setLoading(false)
+    }
   }
 
-  // Datos de ejemplo para completar la tabla
-  const reporterData = [
-    { id: 2, nombre: 'Richard Calcina', ciudad: 'Arequipa', despachos: 7, ultimoDespacho: 'Hoy, 10:30', estado: 'Activo' },
-    { id: 3, nombre: 'Carlos Nina', ciudad: 'Arequipa', despachos: 5, ultimoDespacho: 'Hoy, 11:45', estado: 'Activo' },
-    { id: 4, nombre: 'Diego Condori', ciudad: 'Arequipa', despachos: 4, ultimoDespacho: 'Ayer, 15:20', estado: 'Activo' },
-    { id: 10, nombre: 'Percy Pillca', ciudad: 'Cusco', despachos: 6, ultimoDespacho: 'Ayer, 14:10', estado: 'Activo' },
-    { id: 24, nombre: 'Roxana Gamboa', ciudad: 'Trujillo', despachos: 5, ultimoDespacho: 'Ayer, 16:30', estado: 'Activo' },
-    { id: 11, nombre: 'Christian Canchapoma', ciudad: 'Huancayo', despachos: 3, ultimoDespacho: '20/06/2025, 09:15', estado: 'Ausente' },
-    { id: 19, nombre: 'Percy Bereche', ciudad: 'Piura', despachos: 2, ultimoDespacho: '19/06/2025, 11:30', estado: 'Inactivo' }
-  ]
+  // Cargar datos al montar el componente
+  useEffect(() => {
+    loadReporteros()
+  }, [])
+
+  // Filtrar reporteros según búsqueda
+  const filteredReporteros = reporteros.filter(reportero => 
+    reportero.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    reportero.ciudad.nombre.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
+  // Función para ir a la pestaña de registro con el reportero seleccionado
+  const handleRegistrarDespachos = (reportero: Reportero) => {
+    setSelectedCity(reportero.ciudad.codigo)
+    setActiveTab('registro')
+  }
+
+  // Función para editar reportero
+  const handleEditarReportero = (reportero: Reportero) => {
+    setSelectedReportero(reportero)
+    setShowAddModal(true)
+  }
+
+  // Función para eliminar reportero
+  const handleConfirmDelete = async (id: number) => {
+    try {
+      const response = await fetch(`/api/reporteros/${id}`, {
+        method: 'DELETE'
+      })
+      
+      if (!response.ok) {
+        throw new Error('Error al eliminar reportero')
+      }
+      
+      // Actualizar la lista de reporteros
+      setReporteros(prevReporteros => prevReporteros.filter(r => r.id !== id))
+      
+      setNotification({
+        show: true,
+        type: 'success',
+        title: 'Reportero eliminado',
+        message: 'El reportero ha sido eliminado correctamente'
+      })
+    } catch (error) {
+      console.error('Error al eliminar reportero:', error)
+      setNotification({
+        show: true,
+        type: 'error',
+        title: 'Error',
+        message: 'No se pudo eliminar el reportero'
+      })
+    } finally {
+      setConfirmDelete(null)
+    }
+  }
 
   // Función para obtener la clase de estado
   const getStatusClass = (status: string) => {
     switch (status) {
-      case 'Activo':
+      case 'activo':
         return 'bg-[#ecfdf5] text-[#10b981]';
-      case 'Ausente':
+      case 'ausente':
         return 'bg-[#fffbeb] text-[#f59e0b]';
-      case 'Inactivo':
+      case 'inactivo':
         return 'bg-[#fee2e2] text-[#ef4444]';
       default:
         return 'bg-[#eff6ff] text-[#3b82f6]';
     }
+  }
+
+  // Función para renderizar el estado con icono
+  const renderEstado = (estado: string) => {
+    let icon;
+    switch (estado) {
+      case 'activo':
+        icon = faCheck;
+        break;
+      case 'ausente':
+        icon = faExclamationTriangle;
+        break;
+      case 'inactivo':
+        icon = faBan;
+        break;
+      default:
+        icon = faCheck;
+    }
+    
+    return (
+      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${getStatusClass(estado)}`}>
+        <FontAwesomeIcon icon={icon} className="mr-1" />
+        {estado.charAt(0).toUpperCase() + estado.slice(1)}
+      </span>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center p-10">
+        <FontAwesomeIcon icon={faSpinner} spin className="text-3xl text-primary mr-3" />
+        <span className="text-lg">Cargando reporteros...</span>
+      </div>
+    )
   }
 
   return (
@@ -80,8 +206,17 @@ const ReporterosTab = () => {
         <h2 className="text-xl font-semibold text-[#1a365d] flex items-center gap-3">
           <FontAwesomeIcon icon={faUsers} />
           Todos los Reporteros
+          <span className="ml-2 text-sm bg-[#e0f2fe] text-[#1a56db] px-2 py-1 rounded-full">
+            {reporteros.length} reporteros
+          </span>
         </h2>
-        <button className="flex items-center gap-2 px-3 py-1.5 text-sm bg-[#1a56db] text-white rounded-lg shadow-sm hover:bg-[#1e429f] transition-colors">
+        <button 
+          className="flex items-center gap-2 px-3 py-1.5 text-sm bg-[#1a56db] text-white rounded-lg shadow-sm hover:bg-[#1e429f] transition-colors"
+          onClick={() => {
+            setSelectedReportero(null)
+            setShowAddModal(true)
+          }}
+        >
           <FontAwesomeIcon icon={faPlus} />
           Agregar Reportero
         </button>
@@ -113,31 +248,48 @@ const ReporterosTab = () => {
             </tr>
           </thead>
           <tbody>
-            {reporterData.filter(reporter => 
-              reporter.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              reporter.ciudad.toLowerCase().includes(searchTerm.toLowerCase())
-            ).map(reporter => (
-              <tr key={reporter.id} className="hover:bg-[#f1f5f9]">
-                <td className="py-3 px-4 border-b border-[#e2e8f0] text-[#1e293b]">{reporter.nombre}</td>
-                <td className="py-3 px-4 border-b border-[#e2e8f0] text-[#1e293b]">{reporter.ciudad}</td>
-                <td className="py-3 px-4 border-b border-[#e2e8f0] text-[#1e293b]">{reporter.despachos}</td>
-                <td className="py-3 px-4 border-b border-[#e2e8f0] text-[#1e293b]">{reporter.ultimoDespacho}</td>
+            {filteredReporteros.map(reportero => (
+              <tr key={reportero.id} className="hover:bg-[#f1f5f9]">
+                <td className="py-3 px-4 border-b border-[#e2e8f0] text-[#1e293b] font-medium">{reportero.nombre}</td>
+                <td className="py-3 px-4 border-b border-[#e2e8f0] text-[#1e293b]">{reportero.ciudad.nombre}</td>
+                <td className="py-3 px-4 border-b border-[#e2e8f0] text-[#1e293b] text-center">{reportero.despachos_count || 0}</td>
+                <td className="py-3 px-4 border-b border-[#e2e8f0] text-[#1e293b]">{reportero.ultimo_despacho || 'Sin despachos'}</td>
                 <td className="py-3 px-4 border-b border-[#e2e8f0]">
-                  <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${getStatusClass(reporter.estado)}`}>
-                    {reporter.estado}
-                  </span>
+                  {renderEstado(reportero.estado)}
                 </td>
                 <td className="py-3 px-4 border-b border-[#e2e8f0]">
                   <div className="flex gap-2">
-                    <button className="w-8 h-8 flex items-center justify-center rounded-full text-[#64748b] hover:bg-[#f1f5f9] hover:text-[#1a56db] transition-colors">
-                      <FontAwesomeIcon icon={faEdit} />
+                    <button 
+                      className="w-8 h-8 flex items-center justify-center rounded-full text-[#64748b] hover:bg-[#f1f5f9] hover:text-[#1a56db] transition-colors"
+                      onClick={() => handleEditarReportero(reportero)}
+                      title="Editar reportero"
+                    >
+                      <FontAwesomeIcon icon={faPencilAlt} />
                     </button>
-                    <button className="w-8 h-8 flex items-center justify-center rounded-full text-[#64748b] hover:bg-[#f1f5f9] hover:text-[#1a56db] transition-colors">
+                    <button 
+                      className="w-8 h-8 flex items-center justify-center rounded-full text-[#64748b] hover:bg-[#f1f5f9] hover:text-[#1a56db] transition-colors"
+                      onClick={() => handleRegistrarDespachos(reportero)}
+                      title="Registrar despachos"
+                    >
                       <FontAwesomeIcon icon={faClipboardList} />
                     </button>
-                    <button className="w-8 h-8 flex items-center justify-center rounded-full text-[#64748b] hover:bg-[#f1f5f9] hover:text-[#ef4444] transition-colors">
-                      <FontAwesomeIcon icon={faTrash} />
-                    </button>
+                    {confirmDelete === reportero.id ? (
+                      <button 
+                        className="w-8 h-8 flex items-center justify-center rounded-full bg-[#fee2e2] text-[#ef4444] hover:bg-[#fecaca] transition-colors"
+                        onClick={() => handleConfirmDelete(reportero.id)}
+                        title="Confirmar eliminación"
+                      >
+                        <FontAwesomeIcon icon={faCheck} />
+                      </button>
+                    ) : (
+                      <button 
+                        className="w-8 h-8 flex items-center justify-center rounded-full text-[#64748b] hover:bg-[#f1f5f9] hover:text-[#ef4444] transition-colors"
+                        onClick={() => setConfirmDelete(reportero.id)}
+                        title="Eliminar reportero"
+                      >
+                        <FontAwesomeIcon icon={faTrash} />
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>
@@ -145,6 +297,23 @@ const ReporterosTab = () => {
           </tbody>
         </table>
       </div>
+      
+      {filteredReporteros.length === 0 && (
+        <div className="text-center p-8 bg-[#f8fafc] rounded-lg border border-[#e2e8f0] text-[#64748b] mt-6">
+          <p>No se encontraron reporteros con ese término de búsqueda.</p>
+        </div>
+      )}
+      
+      {/* Modal para agregar/editar reportero */}
+      <AddReporteroModal 
+        show={showAddModal} 
+        onClose={() => setShowAddModal(false)} 
+        reportero={selectedReportero}
+        onSuccess={() => {
+          loadReporteros();
+          setShowAddModal(false);
+        }}
+      />
     </div>
   )
 }
