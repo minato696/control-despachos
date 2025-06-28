@@ -18,7 +18,6 @@ const Tabs = () => {
     { id: 'ciudades', label: 'Todas las Ciudades', icon: faCity },
     { id: 'reporteros', label: 'Todos los Reporteros', icon: faUsers },
     { id: 'resumen', label: 'Resumen Semanal', icon: faChartBar },
-    { id: 'config', label: 'Configuración', icon: faCog }
   ]
 
   return (
