@@ -381,3 +381,66 @@ header {
     justify-content: space-between;
   }
 }
+
+/* Animaciones para el calendario desplegable */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.calendar-dropdown {
+  animation: slideDown 0.2s ease-out forwards;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Estilos para los días del calendario */
+.calendar-day {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.calendar-day:hover {
+  background-color: var(--primary-light);
+}
+
+.calendar-day.other-month {
+  color: var(--gray-medium);
+}
+
+.calendar-day.today {
+  font-weight: bold;
+  position: relative;
+}
+
+.calendar-day.today::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background-color: var(--primary);
+}
+
+.calendar-day.selected {
+  background-color: var(--primary);
+  color: var(--white);
+}
+
+.calendar-day.selected:hover {
+  background-color: var(--primary-dark);
+}
