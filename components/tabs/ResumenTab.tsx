@@ -404,7 +404,7 @@ const ResumenTab = () => {
 
         {/* Información del período seleccionado */}
         {periodoSelect === 'semanal' && selectedWeekData && (
-          <div className="bg-[#eff6ff] border border-[#3b82f6] rounded-lg p-4 mb-6 flex items-center gap-3" id="period-info-banner">>
+          <div className="bg-[#eff6ff] border border-[#3b82f6] rounded-lg p-4 mb-6 flex items-center gap-3" id="period-info-banner">
             <FontAwesomeIcon icon={faCalendarWeek} className="text-[#3b82f6]" />
             <div>
               <p className="text-sm text-[#1e40af]">
