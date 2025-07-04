@@ -1,10 +1,11 @@
-// components/tabs/InformesTab.tsx - Versión Simplificada
+// components/tabs/InformesTab.tsx
 import { useState, useEffect } from 'react'
 import { useAppContext } from '../AppContext'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { 
   faFilePdf, faCalendarDay, faCity, faUser, 
-  faChartBar, faSpinner, faDownload
+  faChartBar, faSpinner, faDownload, faCalendarAlt,
+  faCalendarWeek, faCalendarCheck
 } from '@fortawesome/free-solid-svg-icons'
 import { 
   exportDespachosReportero, 
@@ -14,19 +15,45 @@ import {
 } from '../../utils/pdfExporter'
 import { formatCityName } from '../../utils/cityUtils'
 
+interface DateRange {
+  start: string
+  end: string
+}
+
 const InformesTab = () => {
   const { 
     currentDate, 
     setNotification 
   } = useAppContext()
   
+  // Estados para los diferentes tipos de informes
   const [selectedReportero, setSelectedReportero] = useState<string>('')
   const [selectedCiudad, setSelectedCiudad] = useState<string>('')
   const [selectedFecha, setSelectedFecha] = useState<string>(currentDate.toISOString().split('T')[0])
   const [selectedPeriodo, setSelectedPeriodo] = useState<string>('semanal')
+  
+  // Estados para rangos de fechas
+  const [reporteroDateRange, setReporteroDateRange] = useState<DateRange>({
+    start: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    end: new Date().toISOString().split('T')[0]
+  })
+  const [ciudadDateRange, setCiudadDateRange] = useState<DateRange>({
+    start: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    end: new Date().toISOString().split('T')[0]
+  })
+  const [estadisticasDateRange, setEstadisticasDateRange] = useState<DateRange>({
+    start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    end: new Date().toISOString().split('T')[0]
+  })
+  
   const [isGenerating, setIsGenerating] = useState<string | null>(null)
   const [ciudades, setCiudades] = useState<any[]>([])
   const [reporteros, setReporteros] = useState<any[]>([])
+  const [showCustomRange, setShowCustomRange] = useState({
+    reportero: false,
+    ciudad: false,
+    estadisticas: false
+  })
   
   // Cargar datos al montar
   useEffect(() => {
@@ -52,6 +79,43 @@ const InformesTab = () => {
     fetchData()
   }, [])
 
+  // Actualizar rangos de fechas según el período seleccionado
+  const updateDateRangeByPeriod = (period: string, type: 'reportero' | 'ciudad' | 'estadisticas') => {
+    const end = new Date()
+    let start = new Date()
+    
+    switch (period) {
+      case 'hoy':
+        start = new Date()
+        break
+      case 'semana':
+        start.setDate(end.getDate() - 7)
+        break
+      case 'mes':
+        start.setMonth(end.getMonth() - 1)
+        break
+      case 'trimestre':
+        start.setMonth(end.getMonth() - 3)
+        break
+      case 'personalizado':
+        // No hacer nada, mantener el rango actual
+        return
+    }
+    
+    const range = {
+      start: start.toISOString().split('T')[0],
+      end: end.toISOString().split('T')[0]
+    }
+    
+    if (type === 'reportero') {
+      setReporteroDateRange(range)
+    } else if (type === 'ciudad') {
+      setCiudadDateRange(range)
+    } else if (type === 'estadisticas') {
+      setEstadisticasDateRange(range)
+    }
+  }
+
   // Generar informe de reportero
   const handleGenerateReportero = async () => {
     if (!selectedReportero) {
@@ -68,16 +132,18 @@ const InformesTab = () => {
     
     try {
       const reportero = reporteros.find(r => r.id === parseInt(selectedReportero))
-      const hoy = new Date()
-      const haceUnaSemana = new Date()
-      haceUnaSemana.setDate(hoy.getDate() - 7)
       
       const response = await fetch(
-        `/api/despachos?reportero_id=${reportero.id}&desde=${haceUnaSemana.toISOString().split('T')[0]}&hasta=${hoy.toISOString().split('T')[0]}`
+        `/api/despachos?reportero_id=${reportero.id}&desde=${reporteroDateRange.start}&hasta=${reporteroDateRange.end}`
       )
       const despachos = await response.json()
       
-      exportDespachosReportero(reportero, despachos, haceUnaSemana, hoy)
+      exportDespachosReportero(
+        reportero, 
+        despachos, 
+        new Date(reporteroDateRange.start), 
+        new Date(reporteroDateRange.end)
+      )
       
       setNotification({
         show: true,
@@ -114,20 +180,21 @@ const InformesTab = () => {
     
     try {
       const reporterosCiudad = reporteros.filter(r => r.ciudad.codigo === selectedCiudad)
-      const hoy = new Date()
-      const haceUnaSemana = new Date()
-      haceUnaSemana.setDate(hoy.getDate() - 7)
       
       const response = await fetch(
-        `/api/despachos?ciudad_codigo=${selectedCiudad}&desde=${haceUnaSemana.toISOString().split('T')[0]}&hasta=${hoy.toISOString().split('T')[0]}`
+        `/api/despachos?ciudad_codigo=${selectedCiudad}&desde=${ciudadDateRange.start}&hasta=${ciudadDateRange.end}`
       )
       const despachos = await response.json()
+      
+      const startDate = new Date(ciudadDateRange.start)
+      const endDate = new Date(ciudadDateRange.end)
+      const days = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
       
       exportResumenCiudad(
         selectedCiudad, 
         reporterosCiudad, 
         despachos, 
-        `Última semana`
+        `${startDate.toLocaleDateString('es-ES')} - ${endDate.toLocaleDateString('es-ES')} (${days} días)`
       )
       
       setNotification({
@@ -183,7 +250,9 @@ const InformesTab = () => {
     setIsGenerating('estadisticas')
     
     try {
-      const response = await fetch(`/api/estadisticas?periodo=${selectedPeriodo}`)
+      const response = await fetch(
+        `/api/estadisticas?periodo=personalizado&fechaInicio=${estadisticasDateRange.start}&fechaFin=${estadisticasDateRange.end}`
+      )
       const estadisticas = await response.json()
       
       exportEstadisticasGenerales(estadisticas)
@@ -242,6 +311,88 @@ const InformesTab = () => {
               ))}
             </select>
             
+            <div>
+              <label className="block text-sm font-medium text-[#64748b] mb-2">
+                Período del informe
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  className={`px-3 py-2 text-sm border rounded-lg transition-colors ${
+                    !showCustomRange.reportero && reporteroDateRange.start === new Date().toISOString().split('T')[0]
+                      ? 'bg-blue-50 border-blue-500 text-blue-700'
+                      : 'border-[#e2e8f0] hover:bg-gray-50'
+                  }`}
+                  onClick={() => {
+                    setShowCustomRange({ ...showCustomRange, reportero: false })
+                    updateDateRangeByPeriod('hoy', 'reportero')
+                  }}
+                >
+                  Hoy
+                </button>
+                <button
+                  className={`px-3 py-2 text-sm border rounded-lg transition-colors ${
+                    !showCustomRange.reportero && 
+                    new Date(reporteroDateRange.start).getTime() === new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).setHours(0,0,0,0)
+                      ? 'bg-blue-50 border-blue-500 text-blue-700'
+                      : 'border-[#e2e8f0] hover:bg-gray-50'
+                  }`}
+                  onClick={() => {
+                    setShowCustomRange({ ...showCustomRange, reportero: false })
+                    updateDateRangeByPeriod('semana', 'reportero')
+                  }}
+                >
+                  Última Semana
+                </button>
+                <button
+                  className={`px-3 py-2 text-sm border rounded-lg transition-colors ${
+                    !showCustomRange.reportero && 
+                    Math.abs(new Date(reporteroDateRange.end).getTime() - new Date(reporteroDateRange.start).getTime()) / (1000 * 60 * 60 * 24) > 25
+                      ? 'bg-blue-50 border-blue-500 text-blue-700'
+                      : 'border-[#e2e8f0] hover:bg-gray-50'
+                  }`}
+                  onClick={() => {
+                    setShowCustomRange({ ...showCustomRange, reportero: false })
+                    updateDateRangeByPeriod('mes', 'reportero')
+                  }}
+                >
+                  Último Mes
+                </button>
+                <button
+                  className={`px-3 py-2 text-sm border rounded-lg transition-colors ${
+                    showCustomRange.reportero
+                      ? 'bg-blue-50 border-blue-500 text-blue-700'
+                      : 'border-[#e2e8f0] hover:bg-gray-50'
+                  }`}
+                  onClick={() => setShowCustomRange({ ...showCustomRange, reportero: true })}
+                >
+                  Personalizado
+                </button>
+              </div>
+            </div>
+            
+            {showCustomRange.reportero && (
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-xs text-[#64748b] mb-1">Desde</label>
+                  <input
+                    type="date"
+                    className="w-full px-3 py-2 text-sm border border-[#e2e8f0] rounded-lg"
+                    value={reporteroDateRange.start}
+                    onChange={(e) => setReporteroDateRange({ ...reporteroDateRange, start: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-[#64748b] mb-1">Hasta</label>
+                  <input
+                    type="date"
+                    className="w-full px-3 py-2 text-sm border border-[#e2e8f0] rounded-lg"
+                    value={reporteroDateRange.end}
+                    onChange={(e) => setReporteroDateRange({ ...reporteroDateRange, end: e.target.value })}
+                  />
+                </div>
+              </div>
+            )}
+            
             <button
               className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center justify-center gap-2"
               onClick={handleGenerateReportero}
@@ -283,6 +434,88 @@ const InformesTab = () => {
               ))}
             </select>
             
+            <div>
+              <label className="block text-sm font-medium text-[#64748b] mb-2">
+                Período del informe
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  className={`px-3 py-2 text-sm border rounded-lg transition-colors ${
+                    !showCustomRange.ciudad && ciudadDateRange.start === new Date().toISOString().split('T')[0]
+                      ? 'bg-green-50 border-green-500 text-green-700'
+                      : 'border-[#e2e8f0] hover:bg-gray-50'
+                  }`}
+                  onClick={() => {
+                    setShowCustomRange({ ...showCustomRange, ciudad: false })
+                    updateDateRangeByPeriod('hoy', 'ciudad')
+                  }}
+                >
+                  Hoy
+                </button>
+                <button
+                  className={`px-3 py-2 text-sm border rounded-lg transition-colors ${
+                    !showCustomRange.ciudad && 
+                    new Date(ciudadDateRange.start).getTime() === new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).setHours(0,0,0,0)
+                      ? 'bg-green-50 border-green-500 text-green-700'
+                      : 'border-[#e2e8f0] hover:bg-gray-50'
+                  }`}
+                  onClick={() => {
+                    setShowCustomRange({ ...showCustomRange, ciudad: false })
+                    updateDateRangeByPeriod('semana', 'ciudad')
+                  }}
+                >
+                  Última Semana
+                </button>
+                <button
+                  className={`px-3 py-2 text-sm border rounded-lg transition-colors ${
+                    !showCustomRange.ciudad && 
+                    Math.abs(new Date(ciudadDateRange.end).getTime() - new Date(ciudadDateRange.start).getTime()) / (1000 * 60 * 60 * 24) > 25
+                      ? 'bg-green-50 border-green-500 text-green-700'
+                      : 'border-[#e2e8f0] hover:bg-gray-50'
+                  }`}
+                  onClick={() => {
+                    setShowCustomRange({ ...showCustomRange, ciudad: false })
+                    updateDateRangeByPeriod('mes', 'ciudad')
+                  }}
+                >
+                  Último Mes
+                </button>
+                <button
+                  className={`px-3 py-2 text-sm border rounded-lg transition-colors ${
+                    showCustomRange.ciudad
+                      ? 'bg-green-50 border-green-500 text-green-700'
+                      : 'border-[#e2e8f0] hover:bg-gray-50'
+                  }`}
+                  onClick={() => setShowCustomRange({ ...showCustomRange, ciudad: true })}
+                >
+                  Personalizado
+                </button>
+              </div>
+            </div>
+            
+            {showCustomRange.ciudad && (
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-xs text-[#64748b] mb-1">Desde</label>
+                  <input
+                    type="date"
+                    className="w-full px-3 py-2 text-sm border border-[#e2e8f0] rounded-lg"
+                    value={ciudadDateRange.start}
+                    onChange={(e) => setCiudadDateRange({ ...ciudadDateRange, start: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-[#64748b] mb-1">Hasta</label>
+                  <input
+                    type="date"
+                    className="w-full px-3 py-2 text-sm border border-[#e2e8f0] rounded-lg"
+                    value={ciudadDateRange.end}
+                    onChange={(e) => setCiudadDateRange({ ...ciudadDateRange, end: e.target.value })}
+                  />
+                </div>
+              </div>
+            )}
+            
             <button
               className="w-full px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center justify-center gap-2"
               onClick={handleGenerateCiudad}
@@ -313,12 +546,22 @@ const InformesTab = () => {
           </div>
           
           <div className="space-y-4">
-            <input 
-              type="date"
-              className="w-full px-4 py-2 border border-[#e2e8f0] rounded-lg"
-              value={selectedFecha}
-              onChange={(e) => setSelectedFecha(e.target.value)}
-            />
+            <div>
+              <label className="block text-sm font-medium text-[#64748b] mb-2">
+                Seleccione el día
+              </label>
+              <input 
+                type="date"
+                className="w-full px-4 py-2 border border-[#e2e8f0] rounded-lg"
+                value={selectedFecha}
+                onChange={(e) => setSelectedFecha(e.target.value)}
+              />
+            </div>
+            
+            <div className="bg-purple-50 rounded-lg p-3 text-sm text-purple-700">
+              <FontAwesomeIcon icon={faCalendarCheck} className="mr-2" />
+              Este informe mostrará todos los despachos del día seleccionado organizados por ciudad
+            </div>
             
             <button
               className="w-full px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 flex items-center justify-center gap-2"
@@ -350,15 +593,89 @@ const InformesTab = () => {
           </div>
           
           <div className="space-y-4">
-            <select 
-              className="w-full px-4 py-2 border border-[#e2e8f0] rounded-lg"
-              value={selectedPeriodo}
-              onChange={(e) => setSelectedPeriodo(e.target.value)}
-            >
-              <option value="diario">Diario</option>
-              <option value="semanal">Semanal</option>
-              <option value="mensual">Mensual</option>
-            </select>
+            <div>
+              <label className="block text-sm font-medium text-[#64748b] mb-2">
+                Período del análisis
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  className={`px-3 py-2 text-sm border rounded-lg transition-colors ${
+                    !showCustomRange.estadisticas && 
+                    new Date(estadisticasDateRange.start).getTime() === new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).setHours(0,0,0,0)
+                      ? 'bg-red-50 border-red-500 text-red-700'
+                      : 'border-[#e2e8f0] hover:bg-gray-50'
+                  }`}
+                  onClick={() => {
+                    setShowCustomRange({ ...showCustomRange, estadisticas: false })
+                    updateDateRangeByPeriod('semana', 'estadisticas')
+                  }}
+                >
+                  Última Semana
+                </button>
+                <button
+                  className={`px-3 py-2 text-sm border rounded-lg transition-colors ${
+                    !showCustomRange.estadisticas && 
+                    Math.abs(new Date(estadisticasDateRange.end).getTime() - new Date(estadisticasDateRange.start).getTime()) / (1000 * 60 * 60 * 24) > 25 &&
+                    Math.abs(new Date(estadisticasDateRange.end).getTime() - new Date(estadisticasDateRange.start).getTime()) / (1000 * 60 * 60 * 24) < 35
+                      ? 'bg-red-50 border-red-500 text-red-700'
+                      : 'border-[#e2e8f0] hover:bg-gray-50'
+                  }`}
+                  onClick={() => {
+                    setShowCustomRange({ ...showCustomRange, estadisticas: false })
+                    updateDateRangeByPeriod('mes', 'estadisticas')
+                  }}
+                >
+                  Último Mes
+                </button>
+                <button
+                  className={`px-3 py-2 text-sm border rounded-lg transition-colors ${
+                    !showCustomRange.estadisticas && 
+                    Math.abs(new Date(estadisticasDateRange.end).getTime() - new Date(estadisticasDateRange.start).getTime()) / (1000 * 60 * 60 * 24) > 85
+                      ? 'bg-red-50 border-red-500 text-red-700'
+                      : 'border-[#e2e8f0] hover:bg-gray-50'
+                  }`}
+                  onClick={() => {
+                    setShowCustomRange({ ...showCustomRange, estadisticas: false })
+                    updateDateRangeByPeriod('trimestre', 'estadisticas')
+                  }}
+                >
+                  Último Trimestre
+                </button>
+                <button
+                  className={`px-3 py-2 text-sm border rounded-lg transition-colors ${
+                    showCustomRange.estadisticas
+                      ? 'bg-red-50 border-red-500 text-red-700'
+                      : 'border-[#e2e8f0] hover:bg-gray-50'
+                  }`}
+                  onClick={() => setShowCustomRange({ ...showCustomRange, estadisticas: true })}
+                >
+                  Personalizado
+                </button>
+              </div>
+            </div>
+            
+            {showCustomRange.estadisticas && (
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-xs text-[#64748b] mb-1">Desde</label>
+                  <input
+                    type="date"
+                    className="w-full px-3 py-2 text-sm border border-[#e2e8f0] rounded-lg"
+                    value={estadisticasDateRange.start}
+                    onChange={(e) => setEstadisticasDateRange({ ...estadisticasDateRange, start: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-[#64748b] mb-1">Hasta</label>
+                  <input
+                    type="date"
+                    className="w-full px-3 py-2 text-sm border border-[#e2e8f0] rounded-lg"
+                    value={estadisticasDateRange.end}
+                    onChange={(e) => setEstadisticasDateRange({ ...estadisticasDateRange, end: e.target.value })}
+                  />
+                </div>
+              </div>
+            )}
             
             <button
               className="w-full px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 flex items-center justify-center gap-2"
@@ -399,8 +716,9 @@ const InformesTab = () => {
           <button
             className="px-4 py-2 bg-white border border-[#e2e8f0] rounded-lg hover:bg-[#f8fafc] flex items-center gap-2"
             onClick={() => {
-              setSelectedPeriodo('semanal')
-              handleGenerateEstadisticas()
+              updateDateRangeByPeriod('semana', 'estadisticas')
+              setShowCustomRange({ ...showCustomRange, estadisticas: false })
+              setTimeout(() => handleGenerateEstadisticas(), 100)
             }}
           >
             <FontAwesomeIcon icon={faFilePdf} className="text-red-500" />
@@ -410,8 +728,9 @@ const InformesTab = () => {
           <button
             className="px-4 py-2 bg-white border border-[#e2e8f0] rounded-lg hover:bg-[#f8fafc] flex items-center gap-2"
             onClick={() => {
-              setSelectedPeriodo('mensual')
-              handleGenerateEstadisticas()
+              updateDateRangeByPeriod('mes', 'estadisticas')
+              setShowCustomRange({ ...showCustomRange, estadisticas: false })
+              setTimeout(() => handleGenerateEstadisticas(), 100)
             }}
           >
             <FontAwesomeIcon icon={faFilePdf} className="text-red-500" />

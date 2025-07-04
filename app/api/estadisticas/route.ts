@@ -6,21 +6,43 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const periodo = searchParams.get('periodo') || 'semanal';
+    const fechaParam = searchParams.get('fecha');
+    const fechaInicioParam = searchParams.get('fechaInicio');
+    const fechaFinParam = searchParams.get('fechaFin');
     
     // Calcular fechas para el período
     const hoy = new Date();
     let fechaInicio = new Date();
+    let fechaFin = new Date();
     
     if (periodo === 'diario') {
-      fechaInicio.setHours(0, 0, 0, 0);
+      // Si es diario y se proporciona una fecha específica
+      if (fechaParam) {
+        fechaInicio = new Date(fechaParam);
+        fechaFin = new Date(fechaParam);
+        fechaFin.setHours(23, 59, 59, 999);
+      } else {
+        // Si no se proporciona fecha, usar hoy
+        fechaInicio.setHours(0, 0, 0, 0);
+        fechaFin = hoy;
+      }
     } else if (periodo === 'semanal') {
-      // Inicio de la semana (Lunes)
-      const dia = hoy.getDay() || 7; // 0 es domingo, así que lo convertimos a 7
-      fechaInicio.setDate(hoy.getDate() - dia + 1);
-      fechaInicio.setHours(0, 0, 0, 0);
+      // Si se proporcionan fechas de inicio y fin específicas
+      if (fechaInicioParam && fechaFinParam) {
+        fechaInicio = new Date(fechaInicioParam);
+        fechaFin = new Date(fechaFinParam);
+        fechaFin.setHours(23, 59, 59, 999);
+      } else {
+        // Si no, calcular la semana actual (Lunes a Domingo)
+        const dia = hoy.getDay() || 7; // 0 es domingo, así que lo convertimos a 7
+        fechaInicio.setDate(hoy.getDate() - dia + 1);
+        fechaInicio.setHours(0, 0, 0, 0);
+        fechaFin = hoy;
+      }
     } else if (periodo === 'mensual') {
       fechaInicio.setDate(1);
       fechaInicio.setHours(0, 0, 0, 0);
+      fechaFin = hoy;
     }
     
     // Obtener todos los despachos del período
@@ -28,7 +50,7 @@ export async function GET(request: Request) {
       where: {
         fecha_despacho: {
           gte: fechaInicio,
-          lte: hoy
+          lte: fechaFin
         }
       },
       include: {
@@ -42,7 +64,7 @@ export async function GET(request: Request) {
     const totalDespachos = despachos.length;
     
     // Calcular días transcurridos en el período
-    const diasTranscurridos = Math.max(1, Math.ceil((hoy.getTime() - fechaInicio.getTime()) / (1000 * 60 * 60 * 24)));
+    const diasTranscurridos = Math.max(1, Math.ceil((fechaFin.getTime() - fechaInicio.getTime()) / (1000 * 60 * 60 * 24)) + 1);
     const promedioDespachosDiarios = totalDespachos / diasTranscurridos;
     
     // Reporteros activos (los que tienen al menos un despacho en el período)
@@ -57,10 +79,10 @@ export async function GET(request: Request) {
       where: { activo: true }
     });
     
-    const coberturaNacional = (ciudadesIds.length / Math.max(1, totalCiudades)) * 100;
+    const coberturaNacional = totalCiudades > 0 ? (ciudadesIds.length / totalCiudades) * 100 : 0;
     
     // Despachos en vivo
-    const despachosEnVivo = despachos.filter(d => d.hora_en_vivo).length;
+    const despachosEnVivo = despachos.filter(d => d.hora_en_vivo && d.hora_en_vivo.trim() !== '').length;
     
     // Despachos con problemas
     const despachosConProblemas = despachos.filter(d => d.estado === 'problema').length;
@@ -87,7 +109,7 @@ export async function GET(request: Request) {
       .slice(0, 5)
       .map((ciudad: any) => ({
         ...ciudad,
-        porcentaje: Math.round((ciudad.despachos / Math.max(1, totalDespachos)) * 100)
+        porcentaje: totalDespachos > 0 ? Math.round((ciudad.despachos / totalDespachos) * 100) : 0
       }));
     
     // Top reporteros
@@ -114,26 +136,31 @@ export async function GET(request: Request) {
       .slice(0, 5)
       .map((reportero: any) => ({
         ...reportero,
-        porcentaje: Math.round((reportero.despachos / Math.max(1, totalDespachos)) * 100)
+        porcentaje: totalDespachos > 0 ? Math.round((reportero.despachos / totalDespachos) * 100) : 0
       }));
     
-    // Despachos por día (para la última semana)
-    const ultimaSemana = new Date();
-    ultimaSemana.setDate(hoy.getDate() - 7);
+    // Despachos por día (para los últimos 7 días del período)
+    const ultimaSemana = new Date(fechaFin);
+    ultimaSemana.setDate(fechaFin.getDate() - 6);
     
-    // Agrupar los despachos por día
-    const despachosPorDiaMap = despachos
-      .filter(d => new Date(d.fecha_despacho) >= ultimaSemana)
-      .reduce((acc: any, despacho) => {
+    // Crear un mapa con todos los días de la semana inicializados en 0
+    const despachosPorDiaMap: { [key: string]: { dia: string, total: number } } = {};
+    for (let i = 0; i < 7; i++) {
+      const fecha = new Date(ultimaSemana);
+      fecha.setDate(ultimaSemana.getDate() + i);
+      const fechaStr = fecha.toISOString().split('T')[0];
+      despachosPorDiaMap[fechaStr] = { dia: fechaStr, total: 0 };
+    }
+    
+    // Contar despachos por día
+    despachos
+      .filter(d => new Date(d.fecha_despacho) >= ultimaSemana && new Date(d.fecha_despacho) <= fechaFin)
+      .forEach(despacho => {
         const fecha = despacho.fecha_despacho.toISOString().split('T')[0];
-        
-        if (!acc[fecha]) {
-          acc[fecha] = { dia: fecha, total: 0 };
+        if (despachosPorDiaMap[fecha]) {
+          despachosPorDiaMap[fecha].total++;
         }
-        
-        acc[fecha].total++;
-        return acc;
-      }, {});
+      });
     
     // Convertir a array y ordenar por fecha
     const despachosPorDia = Object.values(despachosPorDiaMap)
@@ -145,12 +172,17 @@ export async function GET(request: Request) {
       reporterosActivos,
       coberturaNacional: parseFloat(coberturaNacional.toFixed(2)),
       despachosEnVivo,
-      porcentajeEnVivo: parseFloat(((despachosEnVivo / Math.max(1, totalDespachos)) * 100).toFixed(2)),
+      porcentajeEnVivo: totalDespachos > 0 ? parseFloat(((despachosEnVivo / totalDespachos) * 100).toFixed(2)) : 0,
       despachosConProblemas,
-      porcentajeConProblemas: parseFloat(((despachosConProblemas / Math.max(1, totalDespachos)) * 100).toFixed(2)),
+      porcentajeConProblemas: totalDespachos > 0 ? parseFloat(((despachosConProblemas / totalDespachos) * 100).toFixed(2)) : 0,
       topCiudades,
       topReporteros,
-      despachosPorDia
+      despachosPorDia,
+      periodo: {
+        tipo: periodo,
+        fechaInicio: fechaInicio.toISOString(),
+        fechaFin: fechaFin.toISOString()
+      }
     });
   } catch (error) {
     console.error('Error al obtener estadísticas:', error);

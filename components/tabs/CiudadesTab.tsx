@@ -2,9 +2,13 @@
 import { useState, useEffect } from 'react'
 import { useAppContext } from '../AppContext'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCity, faPlus, faSearch, faUser, faClipboardList, faSpinner, faMapMarkerAlt } from '@fortawesome/free-solid-svg-icons'
+import { 
+  faCity, faPlus, faSearch, faUser, faClipboardList, 
+  faSpinner, faMapMarkerAlt, faTrash, faEdit, faEllipsisV 
+} from '@fortawesome/free-solid-svg-icons'
 import { formatCityName } from '../../utils/cityUtils'
 import AddCiudadModal from '../modals/AddCiudadModal'
+import ConfirmDeleteCiudadModal from '../modals/ConfirmDeleteCiudadModal'
 
 interface Ciudad {
   id: number
@@ -16,6 +20,9 @@ interface Ciudad {
     nombre: string
     estado: string
   }>
+  _count?: {
+    reporteros: number
+  }
 }
 
 const CiudadesTab = () => {
@@ -24,33 +31,50 @@ const CiudadesTab = () => {
   const [ciudades, setCiudades] = useState<Ciudad[]>([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [ciudadToDelete, setCiudadToDelete] = useState<Ciudad | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [showOptionsFor, setShowOptionsFor] = useState<number | null>(null)
 
   // Cargar ciudades desde la API
+  const loadCiudades = async () => {
+    setLoading(true)
+    try {
+      const response = await fetch('/api/ciudades?include=reporteros')
+      if (!response.ok) {
+        throw new Error('Error al obtener ciudades')
+      }
+      const data = await response.json()
+      setCiudades(data)
+    } catch (error) {
+      console.error('Error al cargar ciudades:', error)
+      setNotification({
+        show: true,
+        type: 'error',
+        title: 'Error',
+        message: 'No se pudieron cargar las ciudades'
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
   useEffect(() => {
-    const fetchCiudades = async () => {
-      setLoading(true)
-      try {
-        const response = await fetch('/api/ciudades?include=reporteros')
-        if (!response.ok) {
-          throw new Error('Error al obtener ciudades')
-        }
-        const data = await response.json()
-        setCiudades(data)
-      } catch (error) {
-        console.error('Error al cargar ciudades:', error)
-        setNotification({
-          show: true,
-          type: 'error',
-          title: 'Error',
-          message: 'No se pudieron cargar las ciudades'
-        })
-      } finally {
-        setLoading(false)
+    loadCiudades()
+  }, [setNotification])
+
+  // Cerrar menú de opciones al hacer clic fuera
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showOptionsFor !== null) {
+        setShowOptionsFor(null)
       }
     }
-    
-    fetchCiudades()
-  }, [setNotification])
+    document.addEventListener('click', handleClickOutside)
+    return () => {
+      document.removeEventListener('click', handleClickOutside)
+    }
+  }, [showOptionsFor])
 
   // Filtrar ciudades según búsqueda
   const filteredCities = ciudades.filter(ciudad => 
@@ -62,6 +86,65 @@ const CiudadesTab = () => {
   const selectCityAndTab = (cityCode: string) => {
     setSelectedCity(cityCode)
     setActiveTab('registro')
+  }
+
+  // Función para mostrar el modal de confirmación de eliminación
+  const handleShowDeleteConfirmation = (ciudad: Ciudad) => {
+    setCiudadToDelete(ciudad)
+    setShowDeleteModal(true)
+    setShowOptionsFor(null)
+  }
+
+  // Función para eliminar ciudad
+  const handleConfirmDelete = async () => {
+    if (!ciudadToDelete) return
+    
+    try {
+      setIsDeleting(true)
+      
+      const response = await fetch(`/api/ciudades/${ciudadToDelete.id}`, {
+        method: 'DELETE'
+      })
+      
+      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al eliminar ciudad')
+      }
+      
+      // Actualizar la lista de ciudades
+      setCiudades(prevCiudades => prevCiudades.filter(c => c.id !== ciudadToDelete.id))
+      
+      setNotification({
+        show: true,
+        type: 'success',
+        title: 'Ciudad eliminada',
+        message: data.message || `La ciudad ${ciudadToDelete.nombre} ha sido eliminada correctamente`
+      })
+      
+      // Cerrar el modal
+      setShowDeleteModal(false)
+      setCiudadToDelete(null)
+    } catch (error) {
+      console.error('Error al eliminar ciudad:', error)
+      
+      let errorMessage = 'No se pudo eliminar la ciudad'
+      if (error instanceof Error) {
+        // Si el error incluye información sobre reporteros asociados
+        if (error.message.includes('reporteros asociados')) {
+          errorMessage = error.message
+        }
+      }
+      
+      setNotification({
+        show: true,
+        type: 'error',
+        title: 'Error',
+        message: errorMessage
+      })
+    } finally {
+      setIsDeleting(false)
+    }
   }
 
   if (loading) {
@@ -108,10 +191,56 @@ const CiudadesTab = () => {
         {filteredCities.map((ciudad) => (
           <div 
             key={ciudad.id}
-            className="border border-[#e2e8f0] rounded-lg shadow p-6 hover:shadow-md hover:-translate-y-[3px] transition-all cursor-pointer h-full flex flex-col"
+            className="border border-[#e2e8f0] rounded-lg shadow p-6 hover:shadow-md hover:-translate-y-[3px] transition-all h-full flex flex-col relative"
           >
+            {/* Botón de opciones */}
+            <div className="absolute top-4 right-4">
+              <button
+                className="w-8 h-8 flex items-center justify-center rounded-full text-[#64748b] hover:bg-[#f1f5f9] hover:text-[#1e293b] transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setShowOptionsFor(showOptionsFor === ciudad.id ? null : ciudad.id)
+                }}
+              >
+                <FontAwesomeIcon icon={faEllipsisV} />
+              </button>
+              
+              {/* Menú desplegable */}
+              {showOptionsFor === ciudad.id && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-[#e2e8f0] z-10">
+                  <button
+                    className="w-full px-4 py-2 text-left text-sm hover:bg-[#f1f5f9] transition-colors flex items-center gap-2"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      // Aquí iría la lógica para editar
+                      setNotification({
+                        show: true,
+                        type: 'info',
+                        title: 'Próximamente',
+                        message: 'La función de editar ciudad estará disponible pronto'
+                      })
+                      setShowOptionsFor(null)
+                    }}
+                  >
+                    <FontAwesomeIcon icon={faEdit} className="text-[#1a56db]" />
+                    Editar Ciudad
+                  </button>
+                  <button
+                    className="w-full px-4 py-2 text-left text-sm hover:bg-[#f1f5f9] transition-colors flex items-center gap-2 text-[#ef4444]"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleShowDeleteConfirmation(ciudad)
+                    }}
+                  >
+                    <FontAwesomeIcon icon={faTrash} />
+                    Eliminar Ciudad
+                  </button>
+                </div>
+              )}
+            </div>
+
             <div className="flex justify-between items-center pb-4 border-b border-[#e2e8f0] mb-4">
-              <h3 className="text-lg font-semibold text-[#1a365d] flex items-center">
+              <h3 className="text-lg font-semibold text-[#1a365d] flex items-center pr-8">
                 <FontAwesomeIcon icon={faMapMarkerAlt} className="mr-2 text-[#1a56db]" />
                 {ciudad.nombre}
               </h3>
@@ -160,12 +289,23 @@ const CiudadesTab = () => {
         show={showModal} 
         onClose={() => setShowModal(false)} 
         onSuccess={() => {
-          // Recargar ciudades después de agregar una nueva
-          fetch('/api/ciudades?include=reporteros')
-            .then(res => res.json())
-            .then(data => setCiudades(data))
-            .catch(error => console.error('Error al actualizar ciudades:', error));
+          loadCiudades()
         }}
+      />
+      
+      {/* Modal de confirmación para eliminar ciudad */}
+      <ConfirmDeleteCiudadModal
+        show={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false)
+          setCiudadToDelete(null)
+        }}
+        onConfirm={handleConfirmDelete}
+        ciudad={ciudadToDelete ? {
+          nombre: ciudadToDelete.nombre,
+          reporterosCount: ciudadToDelete.reporteros.length
+        } : null}
+        isDeleting={isDeleting}
       />
     </div>
   )
