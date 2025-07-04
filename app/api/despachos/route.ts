@@ -1,4 +1,4 @@
-// app/api/despachos/route.ts
+// app/api/despachos/route.ts (mejorado)
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
@@ -8,14 +8,32 @@ export async function GET(request: Request) {
     const fecha = searchParams.get('fecha');
     const reportero_id = searchParams.get('reportero_id');
     const ciudad_codigo = searchParams.get('ciudad_codigo');
+    const desde = searchParams.get('desde');
+    const hasta = searchParams.get('hasta');
     
-    console.log('Recibiendo solicitud en /api/despachos con params:', { fecha, reportero_id, ciudad_codigo });
+    console.log('Recibiendo solicitud en /api/despachos con params:', { fecha, reportero_id, ciudad_codigo, desde, hasta });
 
     // Construir where de forma segura
     let where: any = {};
     
-    // Agregar filtro por fecha si existe
-    if (fecha) {
+    // Agregar filtro por rango de fechas si existen
+    if (desde && hasta) {
+      try {
+        const desdeObj = new Date(desde);
+        const hastaObj = new Date(hasta);
+        // Verificar que las fechas son válidas
+        if (!isNaN(desdeObj.getTime()) && !isNaN(hastaObj.getTime())) {
+          where.fecha_despacho = {
+            gte: desdeObj,
+            lte: hastaObj
+          };
+        }
+      } catch (error) {
+        console.error('Formato de fechas inválido:', { desde, hasta });
+      }
+    }
+    // Agregar filtro por fecha específica si existe
+    else if (fecha) {
       try {
         const fechaObj = new Date(fecha);
         // Verificar que la fecha es válida
@@ -109,6 +127,39 @@ export async function POST(request: Request) {
       );
     }
     
+    // Verificar si ya existe un despacho con el mismo reportero, número y fecha
+    const despachoExistente = await prisma.despachos.findFirst({
+      where: {
+        reportero_id: data.reportero_id,
+        numero_despacho: data.numero_despacho,
+        fecha_despacho: fecha_despacho
+      }
+    });
+    
+    if (despachoExistente) {
+      // Actualizar el despacho existente en lugar de crear uno nuevo
+      const despachoActualizado = await prisma.despachos.update({
+        where: { id: despachoExistente.id },
+        data: {
+          titulo: data.titulo || despachoExistente.titulo,
+          hora_despacho: data.hora_despacho || despachoExistente.hora_despacho,
+          hora_en_vivo: data.hora_en_vivo || despachoExistente.hora_en_vivo,
+          estado: data.estado || despachoExistente.estado
+        },
+        include: { 
+          reportero: {
+            include: { ciudad: true }
+          }
+        }
+      });
+      
+      return NextResponse.json({
+        ...despachoActualizado,
+        updated: true
+      });
+    }
+    
+    // Si no existe, crear un nuevo despacho
     const despacho = await prisma.despachos.create({
       data: {
         reportero_id: data.reportero_id,

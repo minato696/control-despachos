@@ -6,7 +6,8 @@ import {
   faClipboardList, 
   faCity, 
   faUsers, 
-  faChartBar, 
+  faChartBar,
+  faFileAlt,
   faCog 
 } from '@fortawesome/free-solid-svg-icons'
 
@@ -18,6 +19,7 @@ const Tabs = () => {
     { id: 'ciudades', label: 'Todas las Ciudades', icon: faCity },
     { id: 'reporteros', label: 'Todos los Reporteros', icon: faUsers },
     { id: 'resumen', label: 'Resumen Semanal', icon: faChartBar },
+    { id: 'informes', label: 'Informes', icon: faFileAlt },
   ]
 
   return (

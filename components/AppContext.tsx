@@ -255,74 +255,108 @@ const fetchDespachos = async () => {
     }
   }
 
- // Función saveDespachos en AppContext.tsx
+ // Función saveDespachos en AppContext.tsx mejorada
 const saveDespachos = async (nuevosDespachos: Despacho[]) => {
   setLoading(true);
   try {
     const fechaFormateada = currentDate.toISOString().split('T')[0];
     
-    // Guardar cada despacho
+    // Primero, obtener todos los despachos existentes para esta fecha y ciudad
+    const despachosExistentesResponse = await fetch(`/api/despachos?fecha=${fechaFormateada}&ciudad_codigo=${selectedCity}`);
+    const despachosExistentes = await despachosExistentesResponse.json();
+    
+    // Crear un mapa de despachos existentes para búsqueda rápida
+    // La clave es una combinación de reportero_id y numero_despacho
+    const mapaDespachos: { [key: string]: any } = {};
+    despachosExistentes.forEach((despacho: any) => {
+      const clave = `${despacho.reportero_id}-${despacho.numero_despacho}`;
+      mapaDespachos[clave] = despacho;
+    });
+    
+    // Procesar cada despacho para actualizar o crear según corresponda
     for (const despacho of nuevosDespachos) {
-      console.log("Enviando despacho:", despacho); // Para depuración
+      const clave = `${despacho.reportero_id}-${despacho.numero_despacho}`;
+      const despachoExistente = mapaDespachos[clave];
       
-      await fetch('/api/despachos', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          reportero_id: despacho.reportero_id,
-          numero_despacho: despacho.numero_despacho, // Asegúrate de que este campo esté presente
-          titulo: despacho.titulo,
-          hora_despacho: despacho.hora_despacho,
-          hora_en_vivo: despacho.hora_en_vivo,
-          fecha_despacho: fechaFormateada,
-          estado: 'programado'
-        })
-      });
+      if (despachoExistente) {
+        // Actualizar el despacho existente
+        console.log("Actualizando despacho existente:", despachoExistente.id);
+        
+        await fetch(`/api/despachos/${despachoExistente.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            titulo: despacho.titulo,
+            hora_despacho: despacho.hora_despacho,
+            hora_en_vivo: despacho.hora_en_vivo,
+            fecha_despacho: fechaFormateada,
+            estado: despachoExistente.estado || 'programado'
+          })
+        });
+      } else {
+        // Crear un nuevo despacho
+        console.log("Creando nuevo despacho:", despacho);
+        
+        await fetch('/api/despachos', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            reportero_id: despacho.reportero_id,
+            numero_despacho: despacho.numero_despacho,
+            titulo: despacho.titulo,
+            hora_despacho: despacho.hora_despacho,
+            hora_en_vivo: despacho.hora_en_vivo,
+            fecha_despacho: fechaFormateada,
+            estado: 'programado'
+          })
+        });
+      }
     }
     
-      
-      // Actualizar la lista de despachos
-      const response = await fetch(`/api/despachos?fecha=${fechaFormateada}&ciudad_codigo=${selectedCity}`)
-      const data = await response.json()
-      
-      // Transformar la estructura para que coincida con la estructura actual
-      const formattedDespachos = data.map((despacho: any) => ({
-        id: despacho.id,
-        reportero_id: despacho.reportero_id,
-        reportero_nombre: despacho.reportero.nombre,
-        numero_despacho: despacho.numero_despacho,
-        titulo: despacho.titulo,
-        hora_despacho: despacho.hora_despacho,
-        hora_en_vivo: despacho.hora_en_vivo,
-        fecha_despacho: despacho.fecha_despacho,
-        fecha: new Date(despacho.fecha_despacho).toISOString().split('T')[0],
-        ciudad: despacho.reportero.ciudad.codigo,
-        estado: despacho.estado
-      }))
-      
-      setDespachos(formattedDespachos)
-      
-      // Mostrar notificación
-      setNotification({
-        show: true,
-        type: 'success',
-        title: '¡Operación exitosa!',
-        message: 'Los despachos han sido guardados correctamente.'
-      })
-    } catch (error) {
-      console.error('Error al guardar despachos:', error)
-      setNotification({
-        show: true,
-        type: 'error',
-        title: 'Error',
-        message: 'No se pudieron guardar los despachos'
-      })
-    } finally {
-      setLoading(false)
-    }
+    // Actualizar la lista de despachos
+    const response = await fetch(`/api/despachos?fecha=${fechaFormateada}&ciudad_codigo=${selectedCity}`)
+    const data = await response.json()
+    
+    // Transformar la estructura para que coincida con la estructura actual
+    const formattedDespachos = data.map((despacho: any) => ({
+      id: despacho.id,
+      reportero_id: despacho.reportero_id,
+      reportero_nombre: despacho.reportero.nombre,
+      numero_despacho: despacho.numero_despacho,
+      titulo: despacho.titulo,
+      hora_despacho: despacho.hora_despacho,
+      hora_en_vivo: despacho.hora_en_vivo,
+      fecha_despacho: despacho.fecha_despacho,
+      fecha: new Date(despacho.fecha_despacho).toISOString().split('T')[0],
+      ciudad: despacho.reportero.ciudad.codigo,
+      estado: despacho.estado
+    }))
+    
+    setDespachos(formattedDespachos)
+    
+    // Mostrar notificación
+    setNotification({
+      show: true,
+      type: 'success',
+      title: '¡Operación exitosa!',
+      message: 'Los despachos han sido guardados correctamente.'
+    })
+  } catch (error) {
+    console.error('Error al guardar despachos:', error)
+    setNotification({
+      show: true,
+      type: 'error',
+      title: 'Error',
+      message: 'No se pudieron guardar los despachos'
+    })
+  } finally {
+    setLoading(false)
   }
+}
 
   // Valores que expondremos en el contexto
   const contextValue: AppContextType = {

@@ -1,3 +1,4 @@
+// components/tabs/RegistroTab.tsx
 import { useState, useEffect } from 'react'
 import { useAppContext, Despacho } from '../AppContext'
 import CitySelector from '../CitySelector'

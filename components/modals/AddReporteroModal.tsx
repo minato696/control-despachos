@@ -1,7 +1,15 @@
 // components/modals/AddReporteroModal.tsx
 import { useState, useEffect } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faUser, faPlus, faTimes, faSpinner, faCity } from '@fortawesome/free-solid-svg-icons'
+import { 
+  faUser, 
+  faPlus, 
+  faTimes, 
+  faSpinner, 
+  faCity, 
+  faPencilAlt, // Usar faPencilAlt en lugar de faEdit
+  faEdit // Añadir la importación de faEdit si prefieres usar este
+} from '@fortawesome/free-solid-svg-icons'
 import { useAppContext } from '../AppContext'
 
 interface AddReporteroModalProps {
@@ -265,7 +273,7 @@ const AddReporteroModal: React.FC<AddReporteroModalProps> = ({
                   </>
                 ) : (
                   <>
-                    <FontAwesomeIcon icon={reportero ? faEdit : faPlus} />
+                    <FontAwesomeIcon icon={reportero ? faPencilAlt : faPlus} />
                     {reportero ? 'Actualizar' : 'Agregar'}
                   </>
                 )}

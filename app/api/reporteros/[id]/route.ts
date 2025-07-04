@@ -64,19 +64,48 @@ export async function DELETE(
   try {
     const id = parseInt(params.id);
     
-    // Primero eliminar los despachos asociados
-    await prisma.despachos.deleteMany({
-      where: { reportero_id: id }
+    // Verificar si el reportero existe
+    const reportero = await prisma.reporteros.findUnique({
+      where: { id },
+      include: {
+        despachos: true
+      }
     });
     
-    // Luego eliminar el reportero
-    await prisma.reporteros.delete({
-      where: { id }
+    if (!reportero) {
+      return NextResponse.json({ error: 'Reportero no encontrado' }, { status: 404 });
+    }
+    
+    // Usar una transacción para garantizar que todas las operaciones se completan o ninguna
+    const result = await prisma.$transaction(async (tx) => {
+      // Primero eliminar los despachos asociados
+      if (reportero.despachos.length > 0) {
+        await tx.despachos.deleteMany({
+          where: { reportero_id: id }
+        });
+      }
+      
+      // Luego eliminar el reportero
+      return await tx.reporteros.delete({
+        where: { id }
+      });
     });
     
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ 
+      success: true, 
+      message: `Reportero ${reportero.nombre} eliminado correctamente`
+    });
   } catch (error) {
     console.error('Error al eliminar reportero:', error);
-    return NextResponse.json({ error: 'Error al eliminar reportero' }, { status: 500 });
+    
+    // Mensaje de error más detallado en desarrollo
+    const errorDetail = process.env.NODE_ENV === 'development' 
+      ? { detail: error instanceof Error ? error.message : 'Error desconocido' } 
+      : {};
+      
+    return NextResponse.json({ 
+      error: 'Error al eliminar reportero',
+      ...errorDetail 
+    }, { status: 500 });
   }
 }

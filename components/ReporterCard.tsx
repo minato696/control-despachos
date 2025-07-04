@@ -1,3 +1,4 @@
+// Componente ReporterCard mejorado con manejo de guardado individual
 import { useState } from 'react'
 import { Reportero, Despacho } from './AppContext'
 import DespachoCard from './DespachoCard'
@@ -51,8 +52,12 @@ const ReporterCard: React.FC<ReporterCardProps> = ({
         const hora = (document.getElementById(`hora-${reportero.id}-${i}`) as HTMLInputElement)?.value || ''
         const vivo = (document.getElementById(`vivo-${reportero.id}-${i}`) as HTMLInputElement)?.value || ''
         
+        // Solo agregar despachos que tengan al menos un campo con datos
         if (titulo || hora || vivo) {
+          const existingDespacho = findDespacho(i)
+          
           nuevosDespachos.push({
+            id: existingDespacho?.id, // Incluimos el ID si existe
             reportero_id: reportero.id,
             numero_despacho: i,
             titulo,
@@ -64,11 +69,9 @@ const ReporterCard: React.FC<ReporterCardProps> = ({
       
       // Guardar cada despacho
       for (const despacho of nuevosDespachos) {
-        const existingDespacho = findDespacho(despacho.numero_despacho)
-        
-        if (existingDespacho?.id && onUpdateDespacho) {
+        if (despacho.id && onUpdateDespacho) {
           // Actualizar despacho existente
-          await onUpdateDespacho(existingDespacho.id, despacho)
+          await onUpdateDespacho(despacho.id, despacho)
         } else if (onSaveDespacho) {
           // Crear nuevo despacho
           await onSaveDespacho(despacho)

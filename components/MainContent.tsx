@@ -6,6 +6,7 @@ import CiudadesTab from './tabs/CiudadesTab'
 import ReporterosTab from './tabs/ReporterosTab'
 import ResumenTab from './tabs/ResumenTab'
 import ConfigTab from './tabs/ConfigTab'
+import InformesTab from './tabs/InformesTab'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCity, faUsers, faChartBar, faCog } from '@fortawesome/free-solid-svg-icons'
 
@@ -32,6 +33,7 @@ const MainContent = () => {
       {activeTab === 'ciudades' && <CiudadesTab />}
       {activeTab === 'reporteros' && <ReporterosTab />}
       {activeTab === 'resumen' && <ResumenTab />}
+      {activeTab === 'informes' && <InformesTab />}
       {activeTab === 'config' && <ConfigTab />}
     </div>
   )

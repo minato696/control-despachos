@@ -1,4 +1,4 @@
-// app/api/despachos/[id]/route.ts
+// app/api/despachos/[id]/route.ts (mejorado)
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
@@ -38,15 +38,28 @@ export async function PUT(
     const id = parseInt(params.id);
     const data = await request.json();
     
+    // Verificar que el despacho existe
+    const despachoExistente = await prisma.despachos.findUnique({
+      where: { id }
+    });
+    
+    if (!despachoExistente) {
+      return NextResponse.json({ error: 'Despacho no encontrado' }, { status: 404 });
+    }
+    
+    // Preparar los datos para actualización, mantener valores existentes si no se proporcionan nuevos
+    const updateData = {
+      titulo: data.titulo !== undefined ? data.titulo : despachoExistente.titulo,
+      hora_despacho: data.hora_despacho !== undefined ? data.hora_despacho : despachoExistente.hora_despacho,
+      hora_en_vivo: data.hora_en_vivo !== undefined ? data.hora_en_vivo : despachoExistente.hora_en_vivo,
+      fecha_despacho: data.fecha_despacho ? new Date(data.fecha_despacho) : despachoExistente.fecha_despacho,
+      estado: data.estado !== undefined ? data.estado : despachoExistente.estado
+    };
+    
+    // Actualizar el despacho
     const despacho = await prisma.despachos.update({
       where: { id },
-      data: {
-        titulo: data.titulo,
-        hora_despacho: data.hora_despacho,
-        hora_en_vivo: data.hora_en_vivo,
-        fecha_despacho: data.fecha_despacho ? new Date(data.fecha_despacho) : undefined,
-        estado: data.estado
-      },
+      data: updateData,
       include: {
         reportero: {
           include: { ciudad: true }

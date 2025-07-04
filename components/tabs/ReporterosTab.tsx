@@ -1,4 +1,4 @@
-// components/tabs/ReporterosTab.tsx
+// components/tabs/ReporterosTab.tsx (actualizado con modal de confirmación)
 import { useState, useEffect } from 'react'
 import { useAppContext } from '../AppContext'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -9,6 +9,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import { formatCityName } from '../../utils/cityUtils'
 import AddReporteroModal from '../modals/AddReporteroModal'
+import ConfirmDeleteModal from '../modals/ConfirmDeleteModal'  // Importar el nuevo modal
 
 interface Reportero {
   id: number
@@ -30,7 +31,11 @@ const ReporterosTab = () => {
   const [loading, setLoading] = useState(true)
   const [showAddModal, setShowAddModal] = useState(false)
   const [selectedReportero, setSelectedReportero] = useState<Reportero | null>(null)
-  const [confirmDelete, setConfirmDelete] = useState<number | null>(null)
+  
+  // Estados para el modal de confirmación de eliminación
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [reporteroToDelete, setReporteroToDelete] = useState<Reportero | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   // Cargar reporteros desde la API
   const loadReporteros = async () => {
@@ -119,36 +124,53 @@ const ReporterosTab = () => {
     setShowAddModal(true)
   }
 
+  // Función para mostrar el modal de confirmación de eliminación
+  const handleShowDeleteConfirmation = (reportero: Reportero) => {
+    setReporteroToDelete(reportero)
+    setShowDeleteModal(true)
+  }
+
   // Función para eliminar reportero
-  const handleConfirmDelete = async (id: number) => {
+  const handleConfirmDelete = async () => {
+    if (!reporteroToDelete) return
+    
     try {
-      const response = await fetch(`/api/reporteros/${id}`, {
+      setIsDeleting(true)
+      
+      const response = await fetch(`/api/reporteros/${reporteroToDelete.id}`, {
         method: 'DELETE'
       })
       
+      const data = await response.json()
+      
       if (!response.ok) {
-        throw new Error('Error al eliminar reportero')
+        throw new Error(data.error || 'Error al eliminar reportero')
       }
       
       // Actualizar la lista de reporteros
-      setReporteros(prevReporteros => prevReporteros.filter(r => r.id !== id))
+      setReporteros(prevReporteros => prevReporteros.filter(r => r.id !== reporteroToDelete.id))
       
       setNotification({
         show: true,
         type: 'success',
         title: 'Reportero eliminado',
-        message: 'El reportero ha sido eliminado correctamente'
+        message: data.message || `El reportero ${reporteroToDelete.nombre} ha sido eliminado correctamente`
       })
+      
+      // Cerrar el modal
+      setShowDeleteModal(false)
+      setReporteroToDelete(null)
     } catch (error) {
       console.error('Error al eliminar reportero:', error)
+      
       setNotification({
         show: true,
         type: 'error',
         title: 'Error',
-        message: 'No se pudo eliminar el reportero'
+        message: error instanceof Error ? error.message : 'No se pudo eliminar el reportero'
       })
     } finally {
-      setConfirmDelete(null)
+      setIsDeleting(false)
     }
   }
 
@@ -273,23 +295,13 @@ const ReporterosTab = () => {
                     >
                       <FontAwesomeIcon icon={faClipboardList} />
                     </button>
-                    {confirmDelete === reportero.id ? (
-                      <button 
-                        className="w-8 h-8 flex items-center justify-center rounded-full bg-[#fee2e2] text-[#ef4444] hover:bg-[#fecaca] transition-colors"
-                        onClick={() => handleConfirmDelete(reportero.id)}
-                        title="Confirmar eliminación"
-                      >
-                        <FontAwesomeIcon icon={faCheck} />
-                      </button>
-                    ) : (
-                      <button 
-                        className="w-8 h-8 flex items-center justify-center rounded-full text-[#64748b] hover:bg-[#f1f5f9] hover:text-[#ef4444] transition-colors"
-                        onClick={() => setConfirmDelete(reportero.id)}
-                        title="Eliminar reportero"
-                      >
-                        <FontAwesomeIcon icon={faTrash} />
-                      </button>
-                    )}
+                    <button 
+                      className="w-8 h-8 flex items-center justify-center rounded-full text-[#64748b] hover:bg-[#f1f5f9] hover:text-[#ef4444] transition-colors"
+                      onClick={() => handleShowDeleteConfirmation(reportero)}
+                      title="Eliminar reportero"
+                    >
+                      <FontAwesomeIcon icon={faTrash} />
+                    </button>
                   </div>
                 </td>
               </tr>
@@ -313,6 +325,18 @@ const ReporterosTab = () => {
           loadReporteros();
           setShowAddModal(false);
         }}
+      />
+      
+      {/* Modal de confirmación para eliminar reportero */}
+      <ConfirmDeleteModal
+        show={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setReporteroToDelete(null);
+        }}
+        onConfirm={handleConfirmDelete}
+        nombreReportero={reporteroToDelete?.nombre || ''}
+        isDeleting={isDeleting}
       />
     </div>
   )
