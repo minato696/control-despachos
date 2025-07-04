@@ -1,6 +1,7 @@
 // components/tabs/ReporterosTab.tsx (actualizado con modal de confirmación)
 import { useState, useEffect } from 'react'
 import { useAppContext } from '../AppContext'
+import { useAuth } from '../AuthContext'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { 
   faUsers, faPlus, faSearch, faPencilAlt, 
@@ -26,6 +27,7 @@ interface Reportero {
 
 const ReporterosTab = () => {
   const { setActiveTab, setSelectedCity, setNotification } = useAppContext()
+  const { user } = useAuth()
   const [searchTerm, setSearchTerm] = useState('')
   const [reporteros, setReporteros] = useState<Reportero[]>([])
   const [loading, setLoading] = useState(true)
@@ -232,16 +234,18 @@ const ReporterosTab = () => {
             {reporteros.length} reporteros
           </span>
         </h2>
-        <button 
-          className="flex items-center gap-2 px-3 py-1.5 text-sm bg-[#1a56db] text-white rounded-lg shadow-sm hover:bg-[#1e429f] transition-colors"
-          onClick={() => {
-            setSelectedReportero(null)
-            setShowAddModal(true)
-          }}
-        >
-          <FontAwesomeIcon icon={faPlus} />
-          Agregar Reportero
-        </button>
+        {user && user.rol === 'admin' && (
+          <button 
+            className="flex items-center gap-2 px-3 py-1.5 text-sm bg-[#1a56db] text-white rounded-lg shadow-sm hover:bg-[#1e429f] transition-colors"
+            onClick={() => {
+              setSelectedReportero(null)
+              setShowAddModal(true)
+            }}
+          >
+            <FontAwesomeIcon icon={faPlus} />
+            Agregar Reportero
+          </button>
+        )}
       </div>
 
       <div className="relative mb-6">
@@ -281,26 +285,30 @@ const ReporterosTab = () => {
                 </td>
                 <td className="py-3 px-4 border-b border-[#e2e8f0]">
                   <div className="flex gap-2">
-                    <button 
-                      className="w-8 h-8 flex items-center justify-center rounded-full text-[#64748b] hover:bg-[#f1f5f9] hover:text-[#1a56db] transition-colors"
-                      onClick={() => handleEditarReportero(reportero)}
-                      title="Editar reportero"
-                    >
-                      <FontAwesomeIcon icon={faPencilAlt} />
-                    </button>
+                    {user && user.rol === 'admin' && (
+                      <>
+                        <button 
+                          className="w-8 h-8 flex items-center justify-center rounded-full text-[#64748b] hover:bg-[#f1f5f9] hover:text-[#1a56db] transition-colors"
+                          onClick={() => handleEditarReportero(reportero)}
+                          title="Editar reportero"
+                        >
+                          <FontAwesomeIcon icon={faPencilAlt} />
+                        </button>
+                        <button 
+                          className="w-8 h-8 flex items-center justify-center rounded-full text-[#64748b] hover:bg-[#f1f5f9] hover:text-[#ef4444] transition-colors"
+                          onClick={() => handleShowDeleteConfirmation(reportero)}
+                          title="Eliminar reportero"
+                        >
+                          <FontAwesomeIcon icon={faTrash} />
+                        </button>
+                      </>
+                    )}
                     <button 
                       className="w-8 h-8 flex items-center justify-center rounded-full text-[#64748b] hover:bg-[#f1f5f9] hover:text-[#1a56db] transition-colors"
                       onClick={() => handleRegistrarDespachos(reportero)}
                       title="Registrar despachos"
                     >
                       <FontAwesomeIcon icon={faClipboardList} />
-                    </button>
-                    <button 
-                      className="w-8 h-8 flex items-center justify-center rounded-full text-[#64748b] hover:bg-[#f1f5f9] hover:text-[#ef4444] transition-colors"
-                      onClick={() => handleShowDeleteConfirmation(reportero)}
-                      title="Eliminar reportero"
-                    >
-                      <FontAwesomeIcon icon={faTrash} />
                     </button>
                   </div>
                 </td>

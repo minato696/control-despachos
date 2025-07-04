@@ -1,4 +1,4 @@
-// app/api/ciudades/[id]/route.ts (actualizado con DELETE)
+// app/api/ciudades/[id]/route.ts (actualizado con tipos)
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
@@ -82,7 +82,7 @@ export async function DELETE(
     // Verificar si la ciudad tiene reporteros
     if (ciudad.reporteros.length > 0) {
       // Contar total de despachos asociados
-      const totalDespachos = ciudad.reporteros.reduce((total, reportero) => {
+      const totalDespachos = ciudad.reporteros.reduce((total: number, reportero: any) => {
         return total + reportero.despachos.length;
       }, 0);
       

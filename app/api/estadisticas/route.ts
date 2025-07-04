@@ -1,6 +1,23 @@
-// app/api/estadisticas/route.ts
+// app/api/estadisticas/route.ts (con tipos corregidos)
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+
+interface Despacho {
+  id: number;
+  reportero_id: number;
+  fecha_despacho: Date;
+  hora_en_vivo: string | null;
+  estado: string;
+  reportero: {
+    id: number;
+    nombre: string;
+    ciudad_id: number;
+    ciudad: {
+      id: number;
+      nombre: string;
+    };
+  };
+}
 
 export async function GET(request: Request) {
   try {
@@ -58,7 +75,7 @@ export async function GET(request: Request) {
           include: { ciudad: true }
         }
       }
-    });
+    }) as Despacho[];
     
     // Calcular estadísticas básicas
     const totalDespachos = despachos.length;
@@ -68,11 +85,11 @@ export async function GET(request: Request) {
     const promedioDespachosDiarios = totalDespachos / diasTranscurridos;
     
     // Reporteros activos (los que tienen al menos un despacho en el período)
-    const reporterosIds = [...new Set(despachos.map(d => d.reportero_id))];
+    const reporterosIds = [...new Set(despachos.map((d: Despacho) => d.reportero_id))];
     const reporterosActivos = reporterosIds.length;
     
     // Ciudades con despachos
-    const ciudadesIds = [...new Set(despachos.map(d => d.reportero.ciudad_id))];
+    const ciudadesIds = [...new Set(despachos.map((d: Despacho) => d.reportero.ciudad_id))];
     
     // Total de ciudades en el sistema
     const totalCiudades = await prisma.ciudades.count({
@@ -82,13 +99,13 @@ export async function GET(request: Request) {
     const coberturaNacional = totalCiudades > 0 ? (ciudadesIds.length / totalCiudades) * 100 : 0;
     
     // Despachos en vivo
-    const despachosEnVivo = despachos.filter(d => d.hora_en_vivo && d.hora_en_vivo.trim() !== '').length;
+    const despachosEnVivo = despachos.filter((d: Despacho) => d.hora_en_vivo && d.hora_en_vivo.trim() !== '').length;
     
     // Despachos con problemas
-    const despachosConProblemas = despachos.filter(d => d.estado === 'problema').length;
+    const despachosConProblemas = despachos.filter((d: Despacho) => d.estado === 'problema').length;
     
     // Top ciudades
-    const ciudadesMap = despachos.reduce((acc: any, despacho) => {
+    const ciudadesMap = despachos.reduce((acc: any, despacho: Despacho) => {
       const ciudadId = despacho.reportero.ciudad_id;
       const ciudadNombre = despacho.reportero.ciudad.nombre;
       
@@ -113,7 +130,7 @@ export async function GET(request: Request) {
       }));
     
     // Top reporteros
-    const reporterosMap = despachos.reduce((acc: any, despacho) => {
+    const reporterosMap = despachos.reduce((acc: any, despacho: Despacho) => {
       const reporteroId = despacho.reportero_id;
       const reporteroNombre = despacho.reportero.nombre;
       const ciudadNombre = despacho.reportero.ciudad.nombre;
@@ -154,8 +171,8 @@ export async function GET(request: Request) {
     
     // Contar despachos por día
     despachos
-      .filter(d => new Date(d.fecha_despacho) >= ultimaSemana && new Date(d.fecha_despacho) <= fechaFin)
-      .forEach(despacho => {
+      .filter((d: Despacho) => new Date(d.fecha_despacho) >= ultimaSemana && new Date(d.fecha_despacho) <= fechaFin)
+      .forEach((despacho: Despacho) => {
         const fecha = despacho.fecha_despacho.toISOString().split('T')[0];
         if (despachosPorDiaMap[fecha]) {
           despachosPorDiaMap[fecha].total++;

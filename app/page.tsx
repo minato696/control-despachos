@@ -1,15 +1,43 @@
+// app/page.tsx
 "use client"
 
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Header from '../components/Header'
 import DateNavigation from '../components/DateNavigation'
 import Tabs from '../components/Tabs'
 import MainContent from '../components/MainContent'
 import Notification from '../components/Notification'
 import { AppProvider, useAppContext } from '../components/AppContext'
+import { AuthProvider } from '../components/AuthContext'
 
 // Componente interno que usa el contexto
 const AppContent = () => {
   const { notification, setNotification } = useAppContext()
+  const [isReady, setIsReady] = useState(false)
+  const router = useRouter()
+
+  useEffect(() => {
+    // Verificar si hay usuario en localStorage
+    const user = localStorage.getItem('user')
+    if (!user) {
+      // Si no hay usuario, el middleware debería haber redirigido
+      // pero por si acaso, redirigimos aquí también
+      router.push('/login')
+    } else {
+      setIsReady(true)
+    }
+  }, [router])
+
+  if (!isReady) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-[#64748b]">Cargando...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-light text-dark">
@@ -40,8 +68,10 @@ const AppContent = () => {
 // Componente principal que provee el contexto
 export default function Home() {
   return (
-    <AppProvider>
-      <AppContent />
-    </AppProvider>
+    <AuthProvider>
+      <AppProvider>
+        <AppContent />
+      </AppProvider>
+    </AuthProvider>
   )
 }

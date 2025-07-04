@@ -1,3 +1,5 @@
+// prisma/schema.prisma
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -5,6 +7,19 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model Usuarios {
+  id                  Int         @id @default(autoincrement())
+  username            String      @unique
+  password            String      // Almacenaremos el hash de la contraseña
+  nombre              String
+  email               String?     @unique
+  rol                 String      @default("operador") // "admin" o "operador"
+  activo              Boolean     @default(true)
+  ultimo_acceso       DateTime?
+  fecha_creacion      DateTime    @default(now())
+  fecha_actualizacion DateTime    @default(now()) @updatedAt
 }
 
 model Ciudades {

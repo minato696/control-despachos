@@ -1,6 +1,7 @@
 // components/tabs/CiudadesTab.tsx
 import { useState, useEffect } from 'react'
 import { useAppContext } from '../AppContext'
+import { useAuth } from '../AuthContext'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { 
   faCity, faPlus, faSearch, faUser, faClipboardList, 
@@ -27,6 +28,7 @@ interface Ciudad {
 
 const CiudadesTab = () => {
   const { setActiveTab, setSelectedCity, setNotification } = useAppContext()
+  const { user } = useAuth()
   const [searchTerm, setSearchTerm] = useState('')
   const [ciudades, setCiudades] = useState<Ciudad[]>([])
   const [loading, setLoading] = useState(true)
@@ -165,13 +167,15 @@ const CiudadesTab = () => {
             {ciudades.length} ciudades
           </span>
         </h2>
-        <button 
-          className="flex items-center gap-2 px-3 py-1.5 text-sm bg-[#1a56db] text-white rounded-lg shadow-sm hover:bg-[#1e429f] transition-colors"
-          onClick={() => setShowModal(true)}
-        >
-          <FontAwesomeIcon icon={faPlus} />
-          Agregar Ciudad
-        </button>
+        {user && user.rol === 'admin' && (
+          <button 
+            className="flex items-center gap-2 px-3 py-1.5 text-sm bg-[#1a56db] text-white rounded-lg shadow-sm hover:bg-[#1e429f] transition-colors"
+            onClick={() => setShowModal(true)}
+          >
+            <FontAwesomeIcon icon={faPlus} />
+            Agregar Ciudad
+          </button>
+        )}
       </div>
 
       <div className="relative mb-6">
@@ -193,51 +197,53 @@ const CiudadesTab = () => {
             key={ciudad.id}
             className="border border-[#e2e8f0] rounded-lg shadow p-6 hover:shadow-md hover:-translate-y-[3px] transition-all h-full flex flex-col relative"
           >
-            {/* Botón de opciones */}
-            <div className="absolute top-4 right-4">
-              <button
-                className="w-8 h-8 flex items-center justify-center rounded-full text-[#64748b] hover:bg-[#f1f5f9] hover:text-[#1e293b] transition-colors"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setShowOptionsFor(showOptionsFor === ciudad.id ? null : ciudad.id)
-                }}
-              >
-                <FontAwesomeIcon icon={faEllipsisV} />
-              </button>
-              
-              {/* Menú desplegable */}
-              {showOptionsFor === ciudad.id && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-[#e2e8f0] z-10">
-                  <button
-                    className="w-full px-4 py-2 text-left text-sm hover:bg-[#f1f5f9] transition-colors flex items-center gap-2"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      // Aquí iría la lógica para editar
-                      setNotification({
-                        show: true,
-                        type: 'info',
-                        title: 'Próximamente',
-                        message: 'La función de editar ciudad estará disponible pronto'
-                      })
-                      setShowOptionsFor(null)
-                    }}
-                  >
-                    <FontAwesomeIcon icon={faEdit} className="text-[#1a56db]" />
-                    Editar Ciudad
-                  </button>
-                  <button
-                    className="w-full px-4 py-2 text-left text-sm hover:bg-[#f1f5f9] transition-colors flex items-center gap-2 text-[#ef4444]"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      handleShowDeleteConfirmation(ciudad)
-                    }}
-                  >
-                    <FontAwesomeIcon icon={faTrash} />
-                    Eliminar Ciudad
-                  </button>
-                </div>
-              )}
-            </div>
+            {/* Botón de opciones - solo para administradores */}
+            {user && user.rol === 'admin' && (
+              <div className="absolute top-4 right-4">
+                <button
+                  className="w-8 h-8 flex items-center justify-center rounded-full text-[#64748b] hover:bg-[#f1f5f9] hover:text-[#1e293b] transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setShowOptionsFor(showOptionsFor === ciudad.id ? null : ciudad.id)
+                  }}
+                >
+                  <FontAwesomeIcon icon={faEllipsisV} />
+                </button>
+                
+                {/* Menú desplegable */}
+                {showOptionsFor === ciudad.id && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-[#e2e8f0] z-10">
+                    <button
+                      className="w-full px-4 py-2 text-left text-sm hover:bg-[#f1f5f9] transition-colors flex items-center gap-2"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        // Aquí iría la lógica para editar
+                        setNotification({
+                          show: true,
+                          type: 'info',
+                          title: 'Próximamente',
+                          message: 'La función de editar ciudad estará disponible pronto'
+                        })
+                        setShowOptionsFor(null)
+                      }}
+                    >
+                      <FontAwesomeIcon icon={faEdit} className="text-[#1a56db]" />
+                      Editar Ciudad
+                    </button>
+                    <button
+                      className="w-full px-4 py-2 text-left text-sm hover:bg-[#f1f5f9] transition-colors flex items-center gap-2 text-[#ef4444]"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleShowDeleteConfirmation(ciudad)
+                      }}
+                    >
+                      <FontAwesomeIcon icon={faTrash} />
+                      Eliminar Ciudad
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="flex justify-between items-center pb-4 border-b border-[#e2e8f0] mb-4">
               <h3 className="text-lg font-semibold text-[#1a365d] flex items-center pr-8">
